@@ -1,23 +1,11 @@
 "use client";
 
-import { type AbstractIntlMessages } from "next-intl";
+import { QueryProvider, ThemeProvider } from "@/providers";
 
-import { IntlProvider, QueryProvider, ThemeProvider } from "@/providers";
-
-export function Providers({
-  children,
-  messages,
-  locale
-}: {
-  children: React.ReactNode;
-  messages: AbstractIntlMessages;
-  locale?: string;
-}) {
+export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
-      <IntlProvider messages={messages} locale={locale}>
-        <QueryProvider>{children}</QueryProvider>
-      </IntlProvider>
+      <QueryProvider>{children}</QueryProvider>
     </ThemeProvider>
   );
 }
