@@ -6,6 +6,6 @@ export const siteConfig = {
   ogImage: "/og-image.png", // add a real 1200x630 image later
   social: {
     twitter: "",
-    instagram: "",
-  },
+    instagram: ""
+  }
 };
