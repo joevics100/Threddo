@@ -6,7 +6,9 @@
  */
 
 export type ListingStatus = "pending" | "approved" | "rejected";
-export type ListingCondition = "new" | "like_new" | "fairly_used";
+export type ListingCondition = "new" | "like_new" | "gently_used" | "needs_fixing";
+export type SuitableFor = "unisex" | "male" | "female" | "kids";
+export type DeliveryMethod = "pickup" | "delivery" | "meet_up";
 export type UserRole = "user" | "admin";
 
 export interface Database {
@@ -85,12 +87,18 @@ export interface Database {
           is_free: boolean;
           condition: ListingCondition;
           size: string | null;
+          suitable_for: SuitableFor | null;
+          brand: string | null;
+          color: string | null;
+          material: string | null;
+          delivery_method: DeliveryMethod | null;
           state: string | null;
           lga: string | null;
           town: string | null;
           images: string[];
           status: ListingStatus;
           rejection_reason: string | null;
+          allow_calls: boolean;
           view_count: number;
           created_at: string;
           updated_at: string;
@@ -105,12 +113,18 @@ export interface Database {
           is_free?: boolean;
           condition: ListingCondition;
           size?: string | null;
+          suitable_for?: SuitableFor | null;
+          brand?: string | null;
+          color?: string | null;
+          material?: string | null;
+          delivery_method?: DeliveryMethod | null;
           state?: string | null;
           lga?: string | null;
           town?: string | null;
           images?: string[];
           status?: ListingStatus;
           rejection_reason?: string | null;
+          allow_calls?: boolean;
           view_count?: number;
           created_at?: string;
           updated_at?: string;
@@ -125,12 +139,18 @@ export interface Database {
           is_free?: boolean;
           condition?: ListingCondition;
           size?: string | null;
+          suitable_for?: SuitableFor | null;
+          brand?: string | null;
+          color?: string | null;
+          material?: string | null;
+          delivery_method?: DeliveryMethod | null;
           state?: string | null;
           lga?: string | null;
           town?: string | null;
           images?: string[];
           status?: ListingStatus;
           rejection_reason?: string | null;
+          allow_calls?: boolean;
           view_count?: number;
           created_at?: string;
           updated_at?: string;

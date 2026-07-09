@@ -30,6 +30,12 @@ export const Header = async () => {
           {user ? (
             <>
               <Link
+                href="/post"
+                className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
+              >
+                Post an item
+              </Link>
+              <Link
                 href="/dashboard"
                 className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
               >
