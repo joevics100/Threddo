@@ -17,4 +17,3 @@ export function CategoryCard({ name, slug, count }: CategoryCardProps) {
     </Link>
   );
 }
-
