@@ -12,6 +12,16 @@ export const Header = async () => {
     data: { user }
   } = await supabase.auth.getUser();
 
+  let isAdmin = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    isAdmin = profile?.role === "admin";
+  }
+
   return (
     <header className="border-b border-black/5 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -41,6 +51,14 @@ export const Header = async () => {
               >
                 Dashboard
               </Link>
+              {isAdmin ? (
+                <Link
+                  href="/admin/listings"
+                  className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
+                >
+                  Admin
+                </Link>
+              ) : null}
               <form action={signOutAction}>
                 <Button type="submit" variant="outline" size="sm">
                   Log out

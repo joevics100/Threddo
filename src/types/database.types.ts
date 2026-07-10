@@ -10,6 +10,8 @@ export type ListingCondition = "new" | "like_new" | "gently_used" | "needs_fixin
 export type SuitableFor = "unisex" | "male" | "female" | "kids";
 export type DeliveryMethod = "pickup" | "delivery" | "meet_up";
 export type UserRole = "user" | "admin";
+export type ReportReason = "scam" | "inappropriate" | "wrong_category" | "sold_elsewhere" | "other";
+export type ReportStatus = "open" | "resolved";
 
 export interface Database {
   public: {
@@ -218,6 +220,51 @@ export interface Database {
           {
             foreignKeyName: "reviews_seller_id_fkey";
             columns: ["seller_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      reports: {
+        Row: {
+          id: string;
+          listing_id: string;
+          reporter_id: string;
+          reason: ReportReason;
+          details: string | null;
+          status: ReportStatus;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          listing_id: string;
+          reporter_id: string;
+          reason: ReportReason;
+          details?: string | null;
+          status?: ReportStatus;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          listing_id?: string;
+          reporter_id?: string;
+          reason?: ReportReason;
+          details?: string | null;
+          status?: ReportStatus;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reports_listing_id_fkey";
+            columns: ["listing_id"];
+            isOneToOne: false;
+            referencedRelation: "listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reports_reporter_id_fkey";
+            columns: ["reporter_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];

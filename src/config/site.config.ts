@@ -7,5 +7,7 @@ export const siteConfig = {
   social: {
     twitter: "",
     instagram: ""
-  }
+  },
+  // FIXME: add your escrow WhatsApp group invite link (chat.whatsapp.com/...)
+  escrowWhatsAppGroupUrl: ""
 };

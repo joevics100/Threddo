@@ -10,6 +10,12 @@ import {
   getConditionLabel,
   getDeliveryMethodLabel
 } from "@/features/listings/lib/format";
+import {
+  EscrowDialog,
+  ReportListingDialog,
+  ReviewForm,
+  SellerReviews
+} from "@/features/trust-safety";
 
 interface ListingDetailPageProps {
   params: Promise<{ id: string }>;
@@ -44,6 +50,10 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   }
 
   const supabase = await createClient();
+
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
 
   if (listing.status === "approved") {
     // Fire-and-forget — a failed view-count bump shouldn't block the page.
@@ -205,11 +215,34 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
             ) : null}
           </div>
 
+          <div className="mt-3 flex flex-wrap gap-3">
+            <EscrowDialog />
+            <ReportListingDialog listingId={listing.id} />
+          </div>
+
           <p className="mt-6 text-xs text-black/40">
             Always meet in a public place and inspect items before paying. Never send money upfront
             to a stranger.
           </p>
         </div>
+      </div>
+
+      <div className="mt-12 border-t border-black/5 pt-8">
+        <h2 className="text-xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
+          Seller reviews
+        </h2>
+        <div className="mt-4">
+          <SellerReviews sellerId={listing.user_id} />
+        </div>
+
+        {user && user.id !== listing.user_id ? (
+          <div className="mt-6 border-t border-black/5 pt-6">
+            <h3 className="text-sm font-semibold text-[#1B1F3B]">Leave a review</h3>
+            <div className="mt-3">
+              <ReviewForm listingId={listing.id} sellerId={listing.user_id} />
+            </div>
+          </div>
+        ) : null}
       </div>
     </main>
   );
