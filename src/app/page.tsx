@@ -1,54 +1,31 @@
 import Link from "next/link";
 
+import { createClient } from "@/lib/supabase/server";
+
 import { CategoryCard } from "@/components/shared/CategoryCard";
 import { ListingCard } from "@/components/shared/ListingCard";
 
-const CATEGORIES = [
-  { name: "Clothes", slug: "clothes", count: "Gowns, Ankara, jeans & more" },
-  { name: "Shoes", slug: "shoes", count: "Sneakers, heels, native shoes" },
-  { name: "Bags", slug: "bags", count: "Totes, backpacks, clutches" },
-  { name: "Accessories", slug: "accessories", count: "Jewelry, watches, gele" },
-  { name: "Hair", slug: "hair", count: "Wigs, weaves, extensions" },
-  { name: "Others", slug: "others", count: "Everything else" }
-];
+export default async function HomePage() {
+  const supabase = await createClient();
 
-// Placeholder data — replace with Supabase query once listings table is live
-const SAMPLE_LISTINGS = [
-  {
-    id: "1",
-    title: "Ankara Wrap Dress, Size M",
-    price: "Free",
-    location: "Ikeja, Lagos",
-    condition: "Fairly used",
-    type: "donation" as const
-  },
-  {
-    id: "2",
-    title: "Nike Air Force 1, Size 42",
-    price: "₦15,000",
-    location: "Wuse, Abuja",
-    condition: "Like new",
-    type: "sale" as const
-  },
-  {
-    id: "3",
-    title: "Human Hair Bob Wig",
-    price: "₦25,000",
-    location: "GRA, Enugu",
-    condition: "New",
-    type: "sale" as const
-  },
-  {
-    id: "4",
-    title: "Kids' Winter Jacket, Age 6-7",
-    price: "Free",
-    location: "Sabon Gari, Kano",
-    condition: "Fairly used",
-    type: "donation" as const
+  const [{ data: categories }, { data: listings }] = await Promise.all([
+    supabase.from("categories").select("id, name, slug, parent_id").order("name"),
+    supabase
+      .from("listings")
+      .select("id, title, price, is_free, condition, state, lga, images")
+      .eq("status", "approved")
+      .order("created_at", { ascending: false })
+      .limit(8)
+  ]);
+
+  const topLevelCategories = (categories ?? []).filter((c) => !c.parent_id);
+  const subcategoryCount = new Map<string, number>();
+  for (const category of categories ?? []) {
+    if (category.parent_id) {
+      subcategoryCount.set(category.parent_id, (subcategoryCount.get(category.parent_id) ?? 0) + 1);
+    }
   }
-];
 
-export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#FBF8F3]">
       {/* Hero */}
@@ -96,9 +73,18 @@ export default function HomePage() {
         <h2 className="text-3xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
           What are you looking for?
         </h2>
-        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {CATEGORIES.map((cat) => (
-            <CategoryCard key={cat.slug} {...cat} />
+        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
+          {topLevelCategories.map((category) => (
+            <CategoryCard
+              key={category.slug}
+              name={category.name}
+              slug={category.slug}
+              count={
+                subcategoryCount.get(category.id)
+                  ? `${subcategoryCount.get(category.id)} subcategories`
+                  : "Browse now"
+              }
+            />
           ))}
         </div>
       </section>
@@ -114,11 +100,32 @@ export default function HomePage() {
               See all →
             </Link>
           </div>
-          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {SAMPLE_LISTINGS.map((item) => (
-              <ListingCard key={item.id} {...item} />
-            ))}
-          </div>
+
+          {listings && listings.length > 0 ? (
+            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {listings.map((listing) => (
+                <ListingCard
+                  key={listing.id}
+                  id={listing.id}
+                  title={listing.title}
+                  price={listing.price}
+                  isFree={listing.is_free}
+                  condition={listing.condition}
+                  state={listing.state}
+                  lga={listing.lga}
+                  imageUrl={listing.images?.[0]}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="mt-8 text-[#1B1F3B]/60">
+              No listings yet — be the first to{" "}
+              <Link href="/post" className="font-semibold text-[#E8543D] hover:underline">
+                post an item
+              </Link>
+              .
+            </p>
+          )}
         </div>
       </section>
 

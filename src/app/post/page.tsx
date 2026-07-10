@@ -22,7 +22,7 @@ export default async function PostListingPage() {
   }
 
   const [{ data: categories }, { data: profile }] = await Promise.all([
-    supabase.from("categories").select("id, name, parent_id").order("name"),
+    supabase.from("categories").select("id, name, slug, parent_id").order("name"),
     supabase.from("profiles").select("whatsapp_number, phone").eq("id", user.id).single()
   ]);
 

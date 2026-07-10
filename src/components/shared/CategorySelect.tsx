@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export interface CategoryOption {
   id: string;
   name: string;
+  slug: string;
   parent_id: string | null;
 }
 
