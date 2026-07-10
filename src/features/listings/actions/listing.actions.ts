@@ -10,7 +10,10 @@ export interface CreateListingResult {
   error?: string;
 }
 
-export async function createListingAction(values: ListingInput): Promise<CreateListingResult> {
+export async function createListingAction(
+  values: ListingInput,
+  options?: { syncNumberToProfile?: boolean }
+): Promise<CreateListingResult> {
   const parsed = listingSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -43,6 +46,7 @@ export async function createListingAction(values: ListingInput): Promise<CreateL
     material: data.material || null,
     state: data.state,
     lga: data.lga,
+    town: data.town || null,
     delivery_method: data.deliveryMethod,
     images: data.images,
     allow_calls: data.allowCalls,
@@ -53,11 +57,14 @@ export async function createListingAction(values: ListingInput): Promise<CreateL
     return { error: "Couldn't save your listing. Please try again." };
   }
 
-  // Remember this number on the profile so it prefills next time.
-  await supabase
-    .from("profiles")
-    .update({ whatsapp_number: data.whatsappNumber })
-    .eq("id", user.id);
+  // Remember this number on the profile so it prefills next time — unless the
+  // seller explicitly used a one-off different number for this listing.
+  if (options?.syncNumberToProfile !== false) {
+    await supabase
+      .from("profiles")
+      .update({ whatsapp_number: data.whatsappNumber })
+      .eq("id", user.id);
+  }
 
   redirect("/post/success");
 }

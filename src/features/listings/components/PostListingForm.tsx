@@ -31,7 +31,10 @@ import {
   SUITABLE_FOR_OPTIONS
 } from "@/features/listings/constants/listing-options";
 import { uploadListingImages } from "@/features/listings/lib/upload-listing-images";
-import { listingSchema, type ListingInput } from "@/features/listings/schemas/listing.schemas";
+import {
+  listingFormSchema,
+  type ListingFormInput
+} from "@/features/listings/schemas/listing.schemas";
 
 interface PostListingFormProps {
   userId: string;
@@ -50,8 +53,11 @@ export function PostListingForm({
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const form = useForm<ListingInput>({
-    resolver: zodResolver(listingSchema),
+  const hasProfileNumber = Boolean(defaultWhatsappNumber);
+  const [useDifferentNumber, setUseDifferentNumber] = useState(!hasProfileNumber);
+
+  const form = useForm<ListingFormInput>({
+    resolver: zodResolver(listingFormSchema),
     defaultValues: {
       title: "",
       description: "",
@@ -67,10 +73,10 @@ export function PostListingForm({
       material: null,
       state: "",
       lga: "",
+      town: "",
       deliveryMethod: undefined,
       whatsappNumber: defaultWhatsappNumber,
-      allowCalls: false,
-      images: []
+      allowCalls: false
     }
   });
 
@@ -104,8 +110,9 @@ export function PostListingForm({
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
-  async function onSubmit(values: ListingInput) {
+  async function onSubmit(values: ListingFormInput) {
     setFormError(null);
+    setImageError(null);
 
     if (imageFiles.length === 0) {
       setImageError("Add at least one photo.");
@@ -124,7 +131,10 @@ export function PostListingForm({
     setIsUploading(false);
 
     startTransition(async () => {
-      const result = await createListingAction({ ...values, images: imageUrls });
+      const result = await createListingAction(
+        { ...values, images: imageUrls },
+        { syncNumberToProfile: !useDifferentNumber }
+      );
       // createListingAction redirects on success, so reaching here means it failed.
       if (result?.error) {
         setFormError(result.error);
@@ -275,7 +285,7 @@ export function PostListingForm({
             options={SUITABLE_FOR_OPTIONS}
             value={form.watch("suitableFor")}
             onValueChange={(value) =>
-              form.setValue("suitableFor", value as ListingInput["suitableFor"], {
+              form.setValue("suitableFor", value as ListingFormInput["suitableFor"], {
                 shouldValidate: true
               })
             }
@@ -307,7 +317,7 @@ export function PostListingForm({
             options={CONDITION_OPTIONS}
             value={form.watch("condition")}
             onValueChange={(value) =>
-              form.setValue("condition", value as ListingInput["condition"], {
+              form.setValue("condition", value as ListingFormInput["condition"], {
                 shouldValidate: true
               })
             }
@@ -360,7 +370,7 @@ export function PostListingForm({
           />
         </div>
 
-        <div>
+        <div className="grid gap-4">
           <LocationSelect
             state={form.watch("state") || null}
             lga={form.watch("lga") || null}
@@ -368,10 +378,26 @@ export function PostListingForm({
             onLgaChange={(value) => form.setValue("lga", value ?? "", { shouldValidate: true })}
           />
           {form.formState.errors.state || form.formState.errors.lga ? (
-            <p className="mt-1 text-sm text-destructive">
+            <p className="text-sm text-destructive">
               {form.formState.errors.state?.message ?? form.formState.errors.lga?.message}
             </p>
           ) : null}
+
+          <FormField
+            control={form.control}
+            name="town"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Town/community <span className="text-muted-foreground">(optional)</span>
+                </FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Sabo, Yaba" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <div className="grid gap-2">
@@ -380,7 +406,7 @@ export function PostListingForm({
             options={DELIVERY_METHOD_OPTIONS}
             value={form.watch("deliveryMethod")}
             onValueChange={(value) =>
-              form.setValue("deliveryMethod", value as ListingInput["deliveryMethod"], {
+              form.setValue("deliveryMethod", value as ListingFormInput["deliveryMethod"], {
                 shouldValidate: true
               })
             }
@@ -392,19 +418,48 @@ export function PostListingForm({
           ) : null}
         </div>
 
-        <FormField
-          control={form.control}
-          name="whatsappNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>WhatsApp number</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. 080XXXXXXXX" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+        <div className="grid gap-2">
+          <FormLabel>WhatsApp number</FormLabel>
+
+          {hasProfileNumber && !useDifferentNumber ? (
+            <div className="flex items-center justify-between rounded-md border border-input px-3 py-2 text-sm">
+              <span>{defaultWhatsappNumber}</span>
+              <span className="text-xs text-muted-foreground">from your profile</span>
+            </div>
+          ) : (
+            <FormField
+              control={form.control}
+              name="whatsappNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input placeholder="e.g. 080XXXXXXXX" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           )}
-        />
+
+          {hasProfileNumber ? (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="useDifferentNumber"
+                checked={useDifferentNumber}
+                onCheckedChange={(checked) => {
+                  const next = checked === true;
+                  setUseDifferentNumber(next);
+                  form.setValue("whatsappNumber", next ? "" : defaultWhatsappNumber, {
+                    shouldValidate: true
+                  });
+                }}
+              />
+              <label htmlFor="useDifferentNumber" className="text-sm font-normal text-[#1B1F3B]/80">
+                Use a different number for this listing
+              </label>
+            </div>
+          ) : null}
+        </div>
 
         <FormField
           control={form.control}
