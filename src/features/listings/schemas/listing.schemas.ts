@@ -19,7 +19,7 @@ const listingFields = {
     message: "Select a condition"
   }),
   size: z.string().trim().max(40).optional(),
-  color: z.string().trim().min(1, "Enter a color").max(60),
+  color: z.string().trim().max(60).optional(),
   material: z.string().trim().max(60).nullable().optional(),
   state: z.string().min(1, "Select a state"),
   lga: z.string().min(1, "Select an LGA"),

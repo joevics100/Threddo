@@ -42,7 +42,7 @@ export async function createListingAction(
     size: data.size || null,
     suitable_for: data.suitableFor,
     brand: data.brand || null,
-    color: data.color,
+    color: data.color || null,
     material: data.material || null,
     state: data.state,
     lga: data.lga,

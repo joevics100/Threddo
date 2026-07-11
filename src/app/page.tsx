@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import { CategoryCard } from "@/components/shared/CategoryCard";
 import { ListingCard } from "@/components/shared/ListingCard";
+import { sortCategoriesOtherLast } from "@/features/listings/lib/sort-categories";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -18,7 +19,9 @@ export default async function HomePage() {
       .limit(8)
   ]);
 
-  const topLevelCategories = (categories ?? []).filter((c) => !c.parent_id);
+  const topLevelCategories = sortCategoriesOtherLast(
+    (categories ?? []).filter((c) => !c.parent_id)
+  );
   const subcategoryCount = new Map<string, number>();
   for (const category of categories ?? []) {
     if (category.parent_id) {

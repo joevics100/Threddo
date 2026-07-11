@@ -349,7 +349,9 @@ export function PostListingForm({
             name="color"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Color</FormLabel>
+                <FormLabel>
+                  Color <span className="text-muted-foreground">(optional)</span>
+                </FormLabel>
                 <FormControl>
                   <Input placeholder="e.g. Navy blue" {...field} />
                 </FormControl>
@@ -421,12 +423,26 @@ export function PostListingForm({
         <div className="grid gap-2">
           <FormLabel>WhatsApp number</FormLabel>
 
-          {hasProfileNumber && !useDifferentNumber ? (
-            <div className="flex items-center justify-between rounded-md border border-input px-3 py-2 text-sm">
-              <span>{defaultWhatsappNumber}</span>
-              <span className="text-xs text-muted-foreground">from your profile</span>
+          {hasProfileNumber ? (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="useProfileNumber"
+                checked={!useDifferentNumber}
+                onCheckedChange={(checked) => {
+                  const useProfile = checked === true;
+                  setUseDifferentNumber(!useProfile);
+                  form.setValue("whatsappNumber", useProfile ? defaultWhatsappNumber : "", {
+                    shouldValidate: true
+                  });
+                }}
+              />
+              <label htmlFor="useProfileNumber" className="text-sm font-medium text-[#1B1F3B]">
+                {defaultWhatsappNumber}
+              </label>
             </div>
-          ) : (
+          ) : null}
+
+          {!hasProfileNumber || useDifferentNumber ? (
             <FormField
               control={form.control}
               name="whatsappNumber"
@@ -439,25 +455,6 @@ export function PostListingForm({
                 </FormItem>
               )}
             />
-          )}
-
-          {hasProfileNumber ? (
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="useDifferentNumber"
-                checked={useDifferentNumber}
-                onCheckedChange={(checked) => {
-                  const next = checked === true;
-                  setUseDifferentNumber(next);
-                  form.setValue("whatsappNumber", next ? "" : defaultWhatsappNumber, {
-                    shouldValidate: true
-                  });
-                }}
-              />
-              <label htmlFor="useDifferentNumber" className="text-sm font-normal text-[#1B1F3B]/80">
-                Use a different number for this listing
-              </label>
-            </div>
           ) : null}
         </div>
 

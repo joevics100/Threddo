@@ -1,6 +1,7 @@
 "use client";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui";
+import { sortCategoriesOtherLast } from "@/features/listings/lib/sort-categories";
 
 export interface CategoryOption {
   id: string;
@@ -34,7 +35,7 @@ export function CategorySelect({
   onSubcategoryChange,
   disabled
 }: CategorySelectProps) {
-  const topLevel = categories.filter((c) => !c.parent_id);
+  const topLevel = sortCategoriesOtherLast(categories.filter((c) => !c.parent_id));
   const subcategories = categories.filter((c) => c.parent_id === categoryId);
 
   return (
