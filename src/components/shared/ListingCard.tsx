@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import type { ListingCondition } from "@/types/database.types";
 
+import { SaveButton } from "@/features/listings/components/SaveButton";
 import { formatNaira, getConditionLabel } from "@/features/listings/lib/format";
 
 export interface ListingCardProps {
@@ -14,6 +15,8 @@ export interface ListingCardProps {
   state: string | null;
   lga: string | null;
   imageUrl?: string;
+  /** Only pass this when the viewer is logged in — omit to hide the save button entirely. */
+  isSaved?: boolean;
 }
 
 export function ListingCard({
@@ -24,7 +27,8 @@ export function ListingCard({
   condition,
   state,
   lga,
-  imageUrl
+  imageUrl,
+  isSaved
 }: ListingCardProps) {
   const location = [lga, state].filter(Boolean).join(", ");
 
@@ -47,6 +51,11 @@ export function ListingCard({
             No photo
           </div>
         )}
+        {isSaved !== undefined ? (
+          <div className="absolute top-2 right-2">
+            <SaveButton listingId={id} initialSaved={isSaved} />
+          </div>
+        ) : null}
       </div>
       <div className="p-4">
         <span

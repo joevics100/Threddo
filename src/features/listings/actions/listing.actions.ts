@@ -50,6 +50,7 @@ export async function createListingAction(
     delivery_method: data.deliveryMethod,
     images: data.images,
     allow_calls: data.allowCalls,
+    whatsapp_number: data.whatsappNumber,
     status: "pending"
   });
 

@@ -60,7 +60,8 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
     void supabase.rpc("increment_listing_views", { listing_id: listing.id });
   }
 
-  const sellerNumber = listing.seller?.whatsapp_number || listing.seller?.phone || "";
+  const sellerNumber =
+    listing.whatsapp_number || listing.seller?.whatsapp_number || listing.seller?.phone || "";
   const whatsappLink = sellerNumber
     ? buildWhatsAppLink(
         sellerNumber,

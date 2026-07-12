@@ -28,6 +28,9 @@ interface ListingsPageProps {
 export default async function ListingsPage({ searchParams }: ListingsPageProps) {
   const params = await searchParams;
   const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
 
   const { data: categories } = await supabase
     .from("categories")
@@ -65,6 +68,19 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
 
   const { data: listings, count } = await query;
   const totalPages = count ? Math.ceil(count / PAGE_SIZE) : 1;
+
+  let savedIds = new Set<string>();
+  if (user && listings && listings.length > 0) {
+    const { data: saved } = await supabase
+      .from("saved_listings")
+      .select("listing_id")
+      .eq("user_id", user.id)
+      .in(
+        "listing_id",
+        listings.map((l) => l.id)
+      );
+    savedIds = new Set((saved ?? []).map((s) => s.listing_id));
+  }
 
   const pageLink = (targetPage: number) => {
     const next = new URLSearchParams({
@@ -106,6 +122,7 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
                   state={listing.state}
                   lga={listing.lga}
                   imageUrl={listing.images?.[0]}
+                  isSaved={user ? savedIds.has(listing.id) : undefined}
                 />
               ))}
             </div>

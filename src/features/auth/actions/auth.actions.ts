@@ -28,7 +28,7 @@ export async function signUpAction(values: SignupInput): Promise<AuthActionResul
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { full_name: parsed.data.fullName }
+      data: { full_name: parsed.data.fullName, phone: parsed.data.phone }
     }
   });
 

@@ -25,7 +25,7 @@ export function SignupForm() {
 
   const form = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" }
+    defaultValues: { fullName: "", email: "", phone: "", password: "", confirmPassword: "" }
   });
 
   function onSubmit(values: SignupInput) {
@@ -65,6 +65,23 @@ export function SignupForm() {
               <FormControl>
                 <Input type="email" autoComplete="email" placeholder="you@example.com" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone number (WhatsApp)</FormLabel>
+              <FormControl>
+                <Input type="tel" autoComplete="tel" placeholder="e.g. 080XXXXXXXX" {...field} />
+              </FormControl>
+              <p className="text-xs text-muted-foreground">
+                We&apos;ll use this as the default contact number on your listings.
+              </p>
               <FormMessage />
             </FormItem>
           )}

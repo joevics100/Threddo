@@ -8,6 +8,9 @@ import { sortCategoriesOtherLast } from "@/features/listings/lib/sort-categories
 
 export default async function HomePage() {
   const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
 
   const [{ data: categories }, { data: listings }] = await Promise.all([
     supabase.from("categories").select("id, name, slug, parent_id").order("name"),
@@ -18,6 +21,15 @@ export default async function HomePage() {
       .order("created_at", { ascending: false })
       .limit(8)
   ]);
+
+  let savedIds = new Set<string>();
+  if (user) {
+    const { data: saved } = await supabase
+      .from("saved_listings")
+      .select("listing_id")
+      .eq("user_id", user.id);
+    savedIds = new Set((saved ?? []).map((s) => s.listing_id));
+  }
 
   const topLevelCategories = sortCategoriesOtherLast(
     (categories ?? []).filter((c) => !c.parent_id)
@@ -117,6 +129,7 @@ export default async function HomePage() {
                   state={listing.state}
                   lga={listing.lga}
                   imageUrl={listing.images?.[0]}
+                  isSaved={user ? savedIds.has(listing.id) : undefined}
                 />
               ))}
             </div>
