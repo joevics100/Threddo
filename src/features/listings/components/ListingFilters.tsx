@@ -4,7 +4,8 @@ import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { CategorySelect, LocationSelect, type CategoryOption } from "@/components/shared";
-import { Button, Checkbox, Input } from "@/ui";
+import { Button, Checkbox, Input, SegmentedControl } from "@/ui";
+import { SUITABLE_FOR_OPTIONS } from "@/features/listings/constants/listing-options";
 
 interface ListingFiltersProps {
   categories: CategoryOption[];
@@ -22,6 +23,9 @@ export function ListingFilters({ categories }: ListingFiltersProps) {
 
   const [categoryId, setCategoryId] = useState<string | null>(initialCategory?.id ?? null);
   const [subcategoryId, setSubcategoryId] = useState<string | null>(initialSubcategory?.id ?? null);
+  const [suitableFor, setSuitableFor] = useState<string | undefined>(
+    searchParams.get("suitableFor") ?? undefined
+  );
   const [state, setState] = useState<string | null>(searchParams.get("state"));
   const [lga, setLga] = useState<string | null>(searchParams.get("lga"));
   const [freeOnly, setFreeOnly] = useState(searchParams.get("freeOnly") === "1");
@@ -35,8 +39,10 @@ export function ListingFilters({ categories }: ListingFiltersProps) {
     const subcategorySlug = categories.find((c) => c.id === subcategoryId)?.slug;
 
     const next: Record<string, string | null> = {
+      q: searchParams.get("q"),
       category: categorySlug ?? null,
       subcategory: subcategorySlug ?? null,
+      suitableFor: suitableFor ?? null,
       state,
       lga,
       freeOnly: freeOnly ? "1" : null,
@@ -55,6 +61,7 @@ export function ListingFilters({ categories }: ListingFiltersProps) {
   function clearFilters() {
     setCategoryId(null);
     setSubcategoryId(null);
+    setSuitableFor(undefined);
     setState(null);
     setLga(null);
     setFreeOnly(false);
@@ -83,6 +90,15 @@ export function ListingFilters({ categories }: ListingFiltersProps) {
         onLgaChange={setLga}
         layout="stack"
       />
+
+      <div className="grid gap-2">
+        <label className="text-sm font-medium">Suitable for</label>
+        <SegmentedControl
+          options={SUITABLE_FOR_OPTIONS}
+          value={suitableFor}
+          onValueChange={setSuitableFor}
+        />
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="grid gap-1.5">

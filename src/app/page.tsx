@@ -4,7 +4,16 @@ import { createClient } from "@/lib/supabase/server";
 
 import { CategoryCard } from "@/components/shared/CategoryCard";
 import { ListingCard } from "@/components/shared/ListingCard";
+import { HomeSearchBar } from "@/features/listings/components/HomeSearchBar";
 import { sortCategoriesOtherLast } from "@/features/listings/lib/sort-categories";
+
+const QUICK_FILTERS = [
+  { label: "Female", href: "/listings?suitableFor=female" },
+  { label: "Male", href: "/listings?suitableFor=male" },
+  { label: "Kids", href: "/listings?suitableFor=kids" },
+  { label: "Unisex", href: "/listings?suitableFor=unisex" },
+  { label: "Donations", href: "/listings?freeOnly=1" }
+];
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -44,7 +53,12 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-[#FBF8F3]">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[#1B1F3B] text-white">
+      <section
+        className="relative overflow-hidden bg-[#1B1F3B] bg-cover bg-center text-white"
+        style={{ backgroundImage: "url(/hero.jpg)" }}
+      >
+        {/* Dark overlay so text stays readable once a photo is added at /public/hero.jpg */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[#1B1F3B]/80" />
         <div
           aria-hidden
           className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#E8A33D] opacity-20 blur-3xl"
@@ -54,7 +68,23 @@ export default async function HomePage() {
           className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-[#E8543D] opacity-10 blur-3xl"
         />
         <div className="relative mx-auto flex max-w-6xl flex-col items-start px-6 py-24 md:py-32">
-          <span className="mb-5 rounded-full border border-white/20 px-4 py-1.5 text-xs font-medium tracking-widest text-[#E8A33D] uppercase">
+          <div className="w-full max-w-xl">
+            <HomeSearchBar />
+          </div>
+
+          <div className="mt-8 flex w-full flex-wrap gap-2 overflow-x-auto pb-1">
+            {QUICK_FILTERS.map((filter) => (
+              <Link
+                key={filter.label}
+                href={filter.href}
+                className="shrink-0 rounded-full border border-white/25 bg-white/5 px-4 py-1.5 text-sm font-medium whitespace-nowrap text-white/85 transition hover:border-white/50 hover:bg-white/10"
+              >
+                {filter.label}
+              </Link>
+            ))}
+          </div>
+
+          <span className="mt-10 mb-5 rounded-full border border-white/20 px-4 py-1.5 text-xs font-medium tracking-widest text-[#E8A33D] uppercase">
             Made for Nigeria
           </span>
           <h1 className="max-w-2xl text-5xl leading-[1.05] font-[var(--font-display)] font-bold tracking-tight md:text-7xl">

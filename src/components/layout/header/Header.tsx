@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 
 import { ThemeSwitcher } from "@/components/shared";
 import { Button } from "@/ui";
-import { signOutAction } from "@/features/auth";
 
 export const Header = async () => {
   const supabase = await createClient();
@@ -59,11 +58,12 @@ export const Header = async () => {
                   Admin
                 </Link>
               ) : null}
-              <form action={signOutAction}>
-                <Button type="submit" variant="outline" size="sm">
-                  Log out
-                </Button>
-              </form>
+              <Link
+                href="/settings"
+                className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
+              >
+                Settings
+              </Link>
             </>
           ) : (
             <>

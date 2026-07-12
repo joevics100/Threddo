@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import type { SuitableFor } from "@/types/database.types";
+
 import { createClient } from "@/lib/supabase/server";
 
 import { ListingCard } from "@/components/shared/ListingCard";
 import { ListingFilters } from "@/features/listings/components/ListingFilters";
+import { SUITABLE_FOR_OPTIONS } from "@/features/listings/constants/listing-options";
 
 export const metadata: Metadata = {
   title: "Browse listings"
@@ -14,8 +17,10 @@ const PAGE_SIZE = 24;
 
 interface ListingsPageProps {
   searchParams: Promise<{
+    q?: string;
     category?: string;
     subcategory?: string;
+    suitableFor?: string;
     state?: string;
     lga?: string;
     freeOnly?: string;
@@ -55,6 +60,13 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
 
   if (params.state) query = query.eq("state", params.state);
   if (params.lga) query = query.eq("lga", params.lga);
+  if (params.suitableFor && SUITABLE_FOR_OPTIONS.some((o) => o.value === params.suitableFor)) {
+    query = query.eq("suitable_for", params.suitableFor as SuitableFor);
+  }
+  if (params.q?.trim()) {
+    const term = params.q.trim();
+    query = query.or(`title.ilike.%${term}%,description.ilike.%${term}%`);
+  }
 
   if (params.freeOnly === "1") {
     query = query.eq("is_free", true);
@@ -84,8 +96,10 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
 
   const pageLink = (targetPage: number) => {
     const next = new URLSearchParams({
+      ...(params.q ? { q: params.q } : {}),
       ...(params.category ? { category: params.category } : {}),
       ...(params.subcategory ? { subcategory: params.subcategory } : {}),
+      ...(params.suitableFor ? { suitableFor: params.suitableFor } : {}),
       ...(params.state ? { state: params.state } : {}),
       ...(params.lga ? { lga: params.lga } : {}),
       ...(params.freeOnly ? { freeOnly: params.freeOnly } : {}),
@@ -102,7 +116,14 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
         Browse listings
       </h1>
       <p className="mt-1 text-black/60">
-        {count ?? 0} item{count === 1 ? "" : "s"} available right now.
+        {count ?? 0} item{count === 1 ? "" : "s"} available right now
+        {params.q ? (
+          <>
+            {" "}
+            for &ldquo;<span className="font-medium text-[#1B1F3B]">{params.q}</span>&rdquo;
+          </>
+        ) : null}
+        .
       </p>
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr]">
