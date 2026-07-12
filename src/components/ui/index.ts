@@ -8,6 +8,7 @@ export * from "./form";
 export * from "./input";
 export * from "./label";
 export * from "./naira-input";
+export * from "./password-input";
 export * from "./segmented-control";
 export * from "./select";
 export * from "./separator";

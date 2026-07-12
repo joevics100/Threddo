@@ -14,7 +14,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Input
+  Input,
+  PasswordInput
 } from "@/ui";
 import { signInAction } from "@/features/auth/actions/auth.actions";
 import { loginSchema, type LoginInput } from "@/features/auth/schemas/auth.schemas";
@@ -63,12 +64,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="••••••••"
-                  {...field}
-                />
+                <PasswordInput autoComplete="current-password" placeholder="••••••••" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

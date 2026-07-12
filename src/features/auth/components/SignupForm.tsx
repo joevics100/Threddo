@@ -14,7 +14,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Input
+  Input,
+  PasswordInput
 } from "@/ui";
 import { signUpAction } from "@/features/auth/actions/auth.actions";
 import { signupSchema, type SignupInput } from "@/features/auth/schemas/auth.schemas";
@@ -75,7 +76,7 @@ export function SignupForm() {
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Phone number (WhatsApp)</FormLabel>
+              <FormLabel>Phone number</FormLabel>
               <FormControl>
                 <Input type="tel" autoComplete="tel" placeholder="e.g. 080XXXXXXXX" {...field} />
               </FormControl>
@@ -94,12 +95,7 @@ export function SignupForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="••••••••"
-                  {...field}
-                />
+                <PasswordInput autoComplete="new-password" placeholder="••••••••" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -113,12 +109,7 @@ export function SignupForm() {
             <FormItem>
               <FormLabel>Confirm password</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="••••••••"
-                  {...field}
-                />
+                <PasswordInput autoComplete="new-password" placeholder="••••••••" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

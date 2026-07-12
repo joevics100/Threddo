@@ -39,7 +39,7 @@ export default async function PostListingPage() {
         <PostListingForm
           userId={user.id}
           categories={categories ?? []}
-          defaultWhatsappNumber={profile?.whatsapp_number ?? profile?.phone ?? ""}
+          defaultWhatsappNumber={profile?.phone ?? profile?.whatsapp_number ?? ""}
         />
       </div>
     </main>
