@@ -93,6 +93,7 @@ export interface Database {
           is_negotiable: boolean;
           condition: ListingCondition;
           size: string | null;
+          quantity: number;
           suitable_for: SuitableFor | null;
           brand: string | null;
           color: string | null;
@@ -121,6 +122,7 @@ export interface Database {
           is_negotiable?: boolean;
           condition: ListingCondition;
           size?: string | null;
+          quantity?: number;
           suitable_for?: SuitableFor | null;
           brand?: string | null;
           color?: string | null;
@@ -149,6 +151,7 @@ export interface Database {
           is_negotiable?: boolean;
           condition?: ListingCondition;
           size?: string | null;
+          quantity?: number;
           suitable_for?: SuitableFor | null;
           brand?: string | null;
           color?: string | null;

@@ -10,6 +10,10 @@ const listingFields = {
   price: z.string().optional(),
   isFree: z.boolean(),
   isNegotiable: z.boolean(),
+  quantity: z
+    .number({ message: "Enter how many are available" })
+    .int()
+    .min(1, "Must be at least 1"),
   categoryId: z.string().uuid("Select a category"),
   subcategoryId: z.string().uuid().nullable(),
   suitableFor: z.enum(["unisex", "male", "female", "kids"], {
@@ -33,7 +37,10 @@ const listingFields = {
     .trim()
     .min(7, "Enter a valid WhatsApp number")
     .max(20, "Enter a valid WhatsApp number"),
-  allowCalls: z.boolean()
+  allowCalls: z.boolean(),
+  termsAccepted: z.boolean().refine((value) => value === true, {
+    message: "You need to accept the terms to post a listing"
+  })
 };
 
 function withPriceRefinement<T extends z.ZodType<{ isFree: boolean; price?: string }>>(schema: T) {

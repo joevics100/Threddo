@@ -41,6 +41,7 @@ export async function createListingAction(
     is_negotiable: !data.isFree && data.isNegotiable,
     condition: data.condition,
     size: data.size || null,
+    quantity: data.quantity,
     suitable_for: data.suitableFor,
     brand: data.brand || null,
     color: data.color || null,

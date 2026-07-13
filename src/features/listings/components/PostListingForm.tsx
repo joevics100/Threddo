@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 
-import { X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -22,6 +22,7 @@ import {
   SegmentedControl
 } from "@/ui";
 import { createListingAction } from "@/features/listings/actions/listing.actions";
+import { ListingPreviewDialog } from "@/features/listings/components/ListingPreviewDialog";
 import {
   CONDITION_OPTIONS,
   DELIVERY_METHOD_OPTIONS,
@@ -42,6 +43,32 @@ interface PostListingFormProps {
   defaultWhatsappNumber: string;
 }
 
+const DRAFT_STORAGE_KEY = "threddo:draft-listing";
+
+const DEFAULT_VALUES = (defaultWhatsappNumber: string): ListingFormInput => ({
+  title: "",
+  description: "",
+  price: "",
+  isFree: false,
+  isNegotiable: false,
+  quantity: 1,
+  categoryId: "",
+  subcategoryId: null,
+  suitableFor: undefined as unknown as ListingFormInput["suitableFor"],
+  brand: "",
+  condition: undefined as unknown as ListingFormInput["condition"],
+  size: "",
+  color: "",
+  material: null,
+  state: "",
+  lga: "",
+  town: "",
+  deliveryMethod: undefined as unknown as ListingFormInput["deliveryMethod"],
+  whatsappNumber: defaultWhatsappNumber,
+  allowCalls: false,
+  termsAccepted: false
+});
+
 export function PostListingForm({
   userId,
   categories,
@@ -50,42 +77,92 @@ export function PostListingForm({
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [previewValues, setPreviewValues] = useState<ListingFormInput | null>(null);
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
 
   const hasProfileNumber = Boolean(defaultWhatsappNumber);
   const [useDifferentNumber, setUseDifferentNumber] = useState(!hasProfileNumber);
 
   const form = useForm<ListingFormInput>({
     resolver: zodResolver(listingFormSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      price: "",
-      isFree: false,
-      isNegotiable: false,
-      categoryId: "",
-      subcategoryId: null,
-      suitableFor: undefined,
-      brand: "",
-      condition: undefined,
-      size: "",
-      color: "",
-      material: null,
-      state: "",
-      lga: "",
-      town: "",
-      deliveryMethod: undefined,
-      whatsappNumber: defaultWhatsappNumber,
-      allowCalls: false
-    }
+    defaultValues: DEFAULT_VALUES(defaultWhatsappNumber)
   });
 
-  // react-hook-form's watch() isn't memoizable by React Compiler — this is a
-  // performance advisory, not a bug; safe to suppress.
-  // eslint-disable-next-line react-hooks/incompatible-library
   const isFree = form.watch("isFree");
 
+  // Object URLs for photo previews — revoked whenever the file list changes.
+  useEffect(() => {
+    const urls = imageFiles.map((file) => URL.createObjectURL(file));
+    setImagePreviewUrls(urls);
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, [imageFiles]);
+
+  // ── Draft (saved locally in this browser — photos can't be persisted this
+  // way, so only the text fields/selections are saved) ──────────────────────
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (raw) setDraftSavedAt((JSON.parse(raw) as { savedAt: string }).savedAt);
+    } catch {
+      // Corrupt or inaccessible storage — ignore, just don't offer a draft.
+    }
+  }, []);
+
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+      draftTimerRef.current = setTimeout(() => {
+        try {
+          window.localStorage.setItem(
+            DRAFT_STORAGE_KEY,
+            JSON.stringify({ savedAt: new Date().toISOString(), values })
+          );
+        } catch {
+          // Storage full/unavailable — silently skip autosave.
+        }
+      }, 1000);
+    });
+    return () => {
+      subscription.unsubscribe();
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function restoreDraft() {
+    try {
+      const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { values: ListingFormInput };
+      form.reset(parsed.values);
+    } catch {
+      // Ignore — worst case the draft banner just disappears without effect.
+    }
+    setDraftSavedAt(null);
+  }
+
+  function discardDraft() {
+    try {
+      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch {
+      // Nothing to do if storage isn't accessible.
+    }
+    setDraftSavedAt(null);
+  }
+
+  function clearDraftSilently() {
+    try {
+      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch {
+      // Not critical — the draft will just get overwritten next time.
+    }
+  }
+
+  // ── Photos ──────────────────────────────────────────────────────────────
   function handleImagesSelected(fileList: FileList | null) {
     if (!fileList) return;
     setImageError(null);
@@ -111,14 +188,39 @@ export function PostListingForm({
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
-  async function onSubmit(values: ListingFormInput) {
-    setFormError(null);
-    setImageError(null);
+  function moveImage(index: number, direction: -1 | 1) {
+    setImageFiles((prev) => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  }
 
+  function makeCoverPhoto(index: number) {
+    if (index === 0) return;
+    setImageFiles((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.unshift(item);
+      return next;
+    });
+  }
+
+  // ── Preview + submit ────────────────────────────────────────────────────
+  function openPreview(values: ListingFormInput) {
     if (imageFiles.length === 0) {
       setImageError("Add at least one photo.");
       return;
     }
+    setImageError(null);
+    setPreviewValues(values);
+  }
+
+  async function confirmPost() {
+    if (!previewValues) return;
+    setFormError(null);
 
     setIsUploading(true);
     let imageUrls: string[];
@@ -130,15 +232,17 @@ export function PostListingForm({
       return;
     }
     setIsUploading(false);
+    clearDraftSilently();
 
     startTransition(async () => {
       const result = await createListingAction(
-        { ...values, images: imageUrls },
+        { ...previewValues, images: imageUrls },
         { syncNumberToProfile: !useDifferentNumber }
       );
       // createListingAction redirects on success, so reaching here means it failed.
       if (result?.error) {
         setFormError(result.error);
+        setPreviewValues(null);
       }
     });
   }
@@ -147,7 +251,24 @@ export function PostListingForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-8">
+      {draftSavedAt ? (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#E8A33D]/40 bg-[#E8A33D]/10 px-4 py-3 text-sm">
+          <span className="text-[#1B1F3B]">
+            You have a saved draft from {new Date(draftSavedAt).toLocaleString()}. Photos
+            aren&apos;t saved in drafts — you&apos;ll need to re-add them.
+          </span>
+          <div className="flex gap-2">
+            <Button type="button" size="sm" onClick={restoreDraft}>
+              Restore
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={discardDraft}>
+              Discard
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      <form onSubmit={form.handleSubmit(openPreview)} className="grid gap-8">
         {/* Photos */}
         <div className="grid gap-2">
           <label className="text-sm font-medium">
@@ -158,12 +279,13 @@ export function PostListingForm({
             {imageFiles.map((file, index) => (
               <div key={index} className="relative size-24 overflow-hidden rounded-lg border">
                 <Image
-                  src={URL.createObjectURL(file)}
+                  src={imagePreviewUrls[index] ?? ""}
                   alt={`Upload ${index + 1}`}
                   fill
                   className="object-cover"
                   unoptimized
                 />
+
                 <button
                   type="button"
                   onClick={() => removeImage(index)}
@@ -172,6 +294,42 @@ export function PostListingForm({
                 >
                   <X className="size-3.5" />
                 </button>
+
+                {index === 0 ? (
+                  <span className="absolute top-1 left-1 rounded bg-[#1B1F3B]/80 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    Cover
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => makeCoverPhoto(index)}
+                    aria-label="Set as cover photo"
+                    className="absolute top-1 left-1 rounded-full bg-black/60 p-0.5 text-white"
+                  >
+                    <Star className="size-3.5" />
+                  </button>
+                )}
+
+                <div className="absolute inset-x-0 bottom-0 flex justify-between bg-black/40">
+                  <button
+                    type="button"
+                    disabled={index === 0}
+                    onClick={() => moveImage(index, -1)}
+                    aria-label="Move photo earlier"
+                    className="p-0.5 text-white disabled:opacity-30"
+                  >
+                    <ChevronLeft className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={index === imageFiles.length - 1}
+                    onClick={() => moveImage(index, 1)}
+                    aria-label="Move photo later"
+                    className="p-0.5 text-white disabled:opacity-30"
+                  >
+                    <ChevronRight className="size-3.5" />
+                  </button>
+                </div>
               </div>
             ))}
 
@@ -188,6 +346,12 @@ export function PostListingForm({
               </label>
             ) : null}
           </div>
+          {imageFiles.length > 1 ? (
+            <p className="text-xs text-muted-foreground">
+              The first photo is your cover photo — tap the star on another photo to make it the
+              cover, or use the arrows to reorder.
+            </p>
+          ) : null}
           {imageError ? <p className="text-sm text-destructive">{imageError}</p> : null}
         </div>
 
@@ -259,6 +423,28 @@ export function PostListingForm({
             />
           ) : null}
         </div>
+
+        <FormField
+          control={form.control}
+          name="quantity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Quantity available <span className="text-muted-foreground">(if more than one)</span>
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min={1}
+                  value={field.value}
+                  onChange={(e) => field.onChange(Math.max(1, Number(e.target.value) || 1))}
+                  className="w-28"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -493,16 +679,52 @@ export function PostListingForm({
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="termsAccepted"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start gap-2 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={(checked) => field.onChange(checked === true)}
+                />
+              </FormControl>
+              <FormLabel className="font-normal">
+                I agree to Threddo&apos;s{" "}
+                <a href="/terms" target="_blank" className="underline">
+                  Terms of Service
+                </a>{" "}
+                and confirm this listing follows the{" "}
+                <a href="/safety" target="_blank" className="underline">
+                  community guidelines
+                </a>
+                .
+              </FormLabel>
+            </FormItem>
+          )}
+        />
+        {form.formState.errors.termsAccepted ? (
+          <p className="-mt-6 text-sm text-destructive">
+            {form.formState.errors.termsAccepted.message}
+          </p>
+        ) : null}
+
         {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
 
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="bg-[#E8A33D] text-[#1B1F3B] hover:bg-[#f0b563]"
-        >
-          {isUploading ? "Uploading photos…" : isPending ? "Posting…" : "Post listing"}
+        <Button type="submit" className="bg-[#E8A33D] text-[#1B1F3B] hover:bg-[#f0b563]">
+          Preview listing
         </Button>
       </form>
+
+      <ListingPreviewDialog
+        values={previewValues}
+        imagePreviewUrls={imagePreviewUrls}
+        categories={categories}
+        onClose={() => setPreviewValues(null)}
+        onConfirm={confirmPost}
+        isSubmitting={isSubmitting}
+      />
     </Form>
   );
 }
