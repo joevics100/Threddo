@@ -38,6 +38,7 @@ export async function createListingAction(
     description: data.description,
     price: data.isFree ? null : Number(data.price),
     is_free: data.isFree,
+    is_negotiable: !data.isFree && data.isNegotiable,
     condition: data.condition,
     size: data.size || null,
     suitable_for: data.suitableFor,

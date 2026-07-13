@@ -9,6 +9,7 @@ const listingFields = {
     .max(2000),
   price: z.string().optional(),
   isFree: z.boolean(),
+  isNegotiable: z.boolean(),
   categoryId: z.string().uuid("Select a category"),
   subcategoryId: z.string().uuid().nullable(),
   suitableFor: z.enum(["unisex", "male", "female", "kids"], {

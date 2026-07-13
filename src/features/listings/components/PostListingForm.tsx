@@ -63,6 +63,7 @@ export function PostListingForm({
       description: "",
       price: "",
       isFree: false,
+      isNegotiable: false,
       categoryId: "",
       subcategoryId: null,
       suitableFor: undefined,
@@ -239,6 +240,24 @@ export function PostListingForm({
               </FormItem>
             )}
           />
+
+          {!isFree ? (
+            <FormField
+              control={form.control}
+              name="isNegotiable"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal">Price is negotiable</FormLabel>
+                </FormItem>
+              )}
+            />
+          ) : null}
         </div>
 
         <FormField

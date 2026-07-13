@@ -23,6 +23,7 @@ export interface Database {
           phone: string | null;
           whatsapp_number: string | null;
           avatar_url: string | null;
+          is_verified: boolean;
           role: UserRole;
           created_at: string;
         };
@@ -32,6 +33,7 @@ export interface Database {
           phone?: string | null;
           whatsapp_number?: string | null;
           avatar_url?: string | null;
+          is_verified?: boolean;
           role?: UserRole;
           created_at?: string;
         };
@@ -41,6 +43,7 @@ export interface Database {
           phone?: string | null;
           whatsapp_number?: string | null;
           avatar_url?: string | null;
+          is_verified?: boolean;
           role?: UserRole;
           created_at?: string;
         };
@@ -87,6 +90,7 @@ export interface Database {
           description: string | null;
           price: number | null;
           is_free: boolean;
+          is_negotiable: boolean;
           condition: ListingCondition;
           size: string | null;
           suitable_for: SuitableFor | null;
@@ -114,6 +118,7 @@ export interface Database {
           description?: string | null;
           price?: number | null;
           is_free?: boolean;
+          is_negotiable?: boolean;
           condition: ListingCondition;
           size?: string | null;
           suitable_for?: SuitableFor | null;
@@ -141,6 +146,7 @@ export interface Database {
           description?: string | null;
           price?: number | null;
           is_free?: boolean;
+          is_negotiable?: boolean;
           condition?: ListingCondition;
           size?: string | null;
           suitable_for?: SuitableFor | null;

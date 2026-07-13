@@ -1,15 +1,22 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import { env } from "@/env";
+
+import { timeAgo } from "@/lib/date";
 import { createClient } from "@/lib/supabase/server";
 
+import { ListingCard } from "@/components/shared/ListingCard";
+import { ListingImageGallery } from "@/features/listings/components/ListingImageGallery";
+import { SaveButton } from "@/features/listings/components/SaveButton";
+import { ShareButton } from "@/features/listings/components/ShareButton";
 import {
   buildWhatsAppLink,
   formatNaira,
   getConditionLabel,
   getDeliveryMethodLabel
 } from "@/features/listings/lib/format";
+import { SellerCard } from "@/features/sellers";
 import {
   EscrowDialog,
   ReportListingDialog,
@@ -27,7 +34,7 @@ async function getListing(id: string) {
   const { data: listing } = await supabase
     .from("listings")
     .select(
-      "*, category:categories!listings_category_id_fkey(name), seller:profiles!listings_user_id_fkey(full_name, whatsapp_number, phone)"
+      "*, category:categories!listings_category_id_fkey(name), seller:profiles!listings_user_id_fkey(full_name, whatsapp_number, phone, avatar_url, is_verified, created_at)"
     )
     .eq("id", id)
     .single();
@@ -60,6 +67,26 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
     void supabase.rpc("increment_listing_views", { listing_id: listing.id });
   }
 
+  let isSaved: boolean | undefined;
+  if (user) {
+    const { data: saved } = await supabase
+      .from("saved_listings")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("listing_id", listing.id)
+      .maybeSingle();
+    isSaved = Boolean(saved);
+  }
+
+  const { data: similar } = await supabase
+    .from("listings")
+    .select("id, title, price, is_free, condition, state, lga, images")
+    .eq("category_id", listing.category_id)
+    .eq("status", "approved")
+    .neq("id", listing.id)
+    .order("created_at", { ascending: false })
+    .limit(4);
+
   const sellerNumber =
     listing.whatsapp_number || listing.seller?.whatsapp_number || listing.seller?.phone || "";
   const whatsappLink = sellerNumber
@@ -70,7 +97,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
     : null;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
+    <main className="mx-auto max-w-4xl px-6 py-12 pb-24 sm:pb-12">
       {listing.status !== "approved" ? (
         <div className="mb-6 rounded-lg border border-[#E8A33D]/40 bg-[#E8A33D]/10 px-4 py-2 text-sm font-medium text-[#1B1F3B]">
           {listing.status === "pending"
@@ -80,53 +107,37 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
       ) : null}
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        <div className="grid gap-2">
-          {listing.images && listing.images.length > 0 ? (
-            <>
-              <div className="relative aspect-square overflow-hidden rounded-xl bg-[#1B1F3B]/5">
-                <Image
-                  src={listing.images[0]}
-                  alt={listing.title}
-                  fill
-                  sizes="(min-width: 768px) 50vw, 100vw"
-                  className="object-cover"
-                  priority
-                />
-              </div>
-              {listing.images.length > 1 ? (
-                <div className="grid grid-cols-3 gap-2">
-                  {listing.images.slice(1).map((url: string) => (
-                    <div
-                      key={url}
-                      className="relative aspect-square overflow-hidden rounded-lg bg-[#1B1F3B]/5"
-                    >
-                      <Image
-                        src={url}
-                        alt={listing.title}
-                        fill
-                        sizes="200px"
-                        className="object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <div className="flex aspect-square items-center justify-center rounded-xl bg-[#1B1F3B]/5 text-sm text-[#1B1F3B]/40">
-              No photos
-            </div>
-          )}
-        </div>
+        <ListingImageGallery images={listing.images ?? []} title={listing.title} />
 
         <div>
-          <span
-            className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase ${
-              listing.is_free ? "bg-[#1B1F3B]/10 text-[#1B1F3B]" : "bg-[#E8543D]/10 text-[#E8543D]"
-            }`}
-          >
-            {listing.is_free ? "Free" : "For sale"}
-          </span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase ${
+                  listing.is_free
+                    ? "bg-[#1B1F3B]/10 text-[#1B1F3B]"
+                    : "bg-[#E8543D]/10 text-[#E8543D]"
+                }`}
+              >
+                {listing.is_free ? "Free" : "For sale"}
+              </span>
+              {listing.is_negotiable ? (
+                <span className="inline-block rounded-full bg-[#E8A33D]/15 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-[#E8A33D] uppercase">
+                  Negotiable
+                </span>
+              ) : null}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {isSaved !== undefined ? (
+                <SaveButton listingId={listing.id} initialSaved={isSaved} />
+              ) : null}
+              <ShareButton
+                title={listing.title}
+                url={`${env.NEXT_PUBLIC_SITE_URL}/listings/${listing.id}`}
+              />
+            </div>
+          </div>
 
           <h1 className="mt-2 text-2xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
             {listing.title}
@@ -134,6 +145,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           <p className="mt-1 text-xl font-bold text-[#1B1F3B]">
             {formatNaira(listing.is_free ? null : listing.price)}
           </p>
+          <p className="mt-1 text-xs text-black/40">Posted {timeAgo(listing.created_at)}</p>
 
           <dl className="mt-6 grid grid-cols-2 gap-y-3 text-sm">
             <dt className="text-black/50">Category</dt>
@@ -172,7 +184,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
 
             <dt className="text-black/50">Location</dt>
             <dd className="text-[#1B1F3B]">
-              {[listing.lga, listing.state].filter(Boolean).join(", ")}
+              {[listing.town, listing.lga, listing.state].filter(Boolean).join(", ")}
             </dd>
 
             {listing.delivery_method ? (
@@ -191,11 +203,17 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
             </p>
           ) : null}
 
-          <p className="mt-6 text-sm text-black/50">
-            Posted by {listing.seller?.full_name ?? "a Threddo user"}
-          </p>
+          <div className="mt-6">
+            <SellerCard
+              sellerId={listing.user_id}
+              name={listing.seller?.full_name ?? null}
+              avatarUrl={listing.seller?.avatar_url}
+              isVerified={listing.seller?.is_verified}
+              memberSince={listing.seller?.created_at}
+            />
+          </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
             {whatsappLink ? (
               <a
                 href={whatsappLink}
@@ -245,6 +263,29 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           </div>
         ) : null}
       </div>
+
+      {similar && similar.length > 0 ? (
+        <div className="mt-12 border-t border-black/5 pt-8">
+          <h2 className="text-xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
+            Similar listings
+          </h2>
+          <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {similar.map((item) => (
+              <ListingCard
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                price={item.price}
+                isFree={item.is_free}
+                condition={item.condition}
+                state={item.state}
+                lga={item.lga}
+                imageUrl={item.images?.[0]}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
