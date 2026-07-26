@@ -19,6 +19,8 @@ interface ListingPreviewDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   isSubmitting: boolean;
+  confirmLabel?: string;
+  submittingLabel?: string;
 }
 
 function labelFor(options: { label: string; value: string }[], value?: string | null) {
@@ -31,7 +33,9 @@ export function ListingPreviewDialog({
   categories,
   onClose,
   onConfirm,
-  isSubmitting
+  isSubmitting,
+  confirmLabel = "Confirm & post",
+  submittingLabel = "Posting…"
 }: ListingPreviewDialogProps) {
   const categoryName = categories.find((c) => c.id === values?.categoryId)?.name;
   const subcategoryName = categories.find((c) => c.id === values?.subcategoryId)?.name;
@@ -132,7 +136,7 @@ export function ListingPreviewDialog({
             disabled={isSubmitting}
             className="bg-[#E8A33D] text-[#1B1F3B] hover:bg-[#f0b563]"
           >
-            {isSubmitting ? "Posting…" : "Confirm & post"}
+            {isSubmitting ? submittingLabel : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

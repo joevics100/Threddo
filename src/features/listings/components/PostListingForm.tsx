@@ -21,7 +21,10 @@ import {
   NairaInput,
   SegmentedControl
 } from "@/ui";
-import { createListingAction } from "@/features/listings/actions/listing.actions";
+import {
+  createListingAction,
+  updateListingAction
+} from "@/features/listings/actions/listing.actions";
 import { ListingPreviewDialog } from "@/features/listings/components/ListingPreviewDialog";
 import {
   CONDITION_OPTIONS,
@@ -41,7 +44,16 @@ interface PostListingFormProps {
   userId: string;
   categories: CategoryOption[];
   defaultWhatsappNumber: string;
+  /** "edit" pre-fills the form from an existing listing and saves in place instead of creating a new one. */
+  mode?: "create" | "edit";
+  listingId?: string;
+  initialValues?: ListingFormInput;
+  initialImageUrls?: string[];
 }
+
+/** One photo slot — either an already-uploaded URL or a freshly-picked file. */
+type ImageItem =
+  { kind: "existing"; url: string } | { kind: "new"; file: File; previewUrl: string };
 
 const DRAFT_STORAGE_KEY = "threddo:draft-listing";
 
@@ -72,47 +84,60 @@ const DEFAULT_VALUES = (defaultWhatsappNumber: string): ListingFormInput => ({
 export function PostListingForm({
   userId,
   categories,
-  defaultWhatsappNumber
+  defaultWhatsappNumber,
+  mode = "create",
+  listingId,
+  initialValues,
+  initialImageUrls
 }: PostListingFormProps) {
+  const isEdit = mode === "edit";
+
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  const [images, setImages] = useState<ImageItem[]>(
+    () => initialImageUrls?.map((url): ImageItem => ({ kind: "existing", url })) ?? []
+  );
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [previewValues, setPreviewValues] = useState<ListingFormInput | null>(null);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
 
   const hasProfileNumber = Boolean(defaultWhatsappNumber);
-  const [useDifferentNumber, setUseDifferentNumber] = useState(!hasProfileNumber);
+  const [useDifferentNumber, setUseDifferentNumber] = useState(isEdit ? true : !hasProfileNumber);
 
   const form = useForm<ListingFormInput>({
     resolver: zodResolver(listingFormSchema),
-    defaultValues: DEFAULT_VALUES(defaultWhatsappNumber)
+    defaultValues: initialValues ?? DEFAULT_VALUES(defaultWhatsappNumber)
   });
 
   const isFree = form.watch("isFree");
+  const imagePreviewUrls = images.map((item) =>
+    item.kind === "existing" ? item.url : item.previewUrl
+  );
 
-  // Object URLs for photo previews — revoked whenever the file list changes.
+  // Object URLs for freshly-picked photos — revoked whenever they drop out of state.
   useEffect(() => {
-    const urls = imageFiles.map((file) => URL.createObjectURL(file));
-    setImagePreviewUrls(urls);
-    return () => urls.forEach((url) => URL.revokeObjectURL(url));
-  }, [imageFiles]);
+    const newFileUrls = images
+      .filter((item): item is Extract<ImageItem, { kind: "new" }> => item.kind === "new")
+      .map((item) => item.previewUrl);
+    return () => newFileUrls.forEach((url) => URL.revokeObjectURL(url));
+  }, [images]);
 
-  // ── Draft (saved locally in this browser — photos can't be persisted this
-  // way, so only the text fields/selections are saved) ──────────────────────
+  // ── Draft (create mode only — saved locally in this browser; photos can't
+  // be persisted this way, so only the text fields/selections are saved) ────
   useEffect(() => {
+    if (isEdit) return;
     try {
       const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
       if (raw) setDraftSavedAt((JSON.parse(raw) as { savedAt: string }).savedAt);
     } catch {
       // Corrupt or inaccessible storage — ignore, just don't offer a draft.
     }
-  }, []);
+  }, [isEdit]);
 
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
+    if (isEdit) return;
     const subscription = form.watch((values) => {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
       draftTimerRef.current = setTimeout(() => {
@@ -131,7 +156,7 @@ export function PostListingForm({
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isEdit]);
 
   function restoreDraft() {
     try {
@@ -168,7 +193,14 @@ export function PostListingForm({
     setImageError(null);
 
     const incoming = Array.from(fileList);
-    const combined = [...imageFiles, ...incoming];
+    const combined: ImageItem[] = [
+      ...images,
+      ...incoming.map((file): ImageItem => ({
+        kind: "new",
+        file,
+        previewUrl: URL.createObjectURL(file)
+      }))
+    ];
 
     if (combined.length > MAX_LISTING_IMAGES) {
       setImageError(`You can add up to ${MAX_LISTING_IMAGES} photos.`);
@@ -181,15 +213,15 @@ export function PostListingForm({
       return;
     }
 
-    setImageFiles(combined);
+    setImages(combined);
   }
 
   function removeImage(index: number) {
-    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, i) => i !== index));
   }
 
   function moveImage(index: number, direction: -1 | 1) {
-    setImageFiles((prev) => {
+    setImages((prev) => {
       const target = index + direction;
       if (target < 0 || target >= prev.length) return prev;
       const next = [...prev];
@@ -200,7 +232,7 @@ export function PostListingForm({
 
   function makeCoverPhoto(index: number) {
     if (index === 0) return;
-    setImageFiles((prev) => {
+    setImages((prev) => {
       const next = [...prev];
       const [item] = next.splice(index, 1);
       next.unshift(item);
@@ -210,7 +242,7 @@ export function PostListingForm({
 
   // ── Preview + submit ────────────────────────────────────────────────────
   function openPreview(values: ListingFormInput) {
-    if (imageFiles.length === 0) {
+    if (images.length === 0) {
       setImageError("Add at least one photo.");
       return;
     }
@@ -222,10 +254,14 @@ export function PostListingForm({
     if (!previewValues) return;
     setFormError(null);
 
+    const newFiles = images
+      .filter((item): item is Extract<ImageItem, { kind: "new" }> => item.kind === "new")
+      .map((item) => item.file);
+
     setIsUploading(true);
-    let imageUrls: string[];
+    let uploadedUrls: string[];
     try {
-      imageUrls = await uploadListingImages(imageFiles, userId);
+      uploadedUrls = newFiles.length > 0 ? await uploadListingImages(newFiles, userId) : [];
     } catch (error) {
       setIsUploading(false);
       setImageError(error instanceof Error ? error.message : "Couldn't upload your photos.");
@@ -234,12 +270,21 @@ export function PostListingForm({
     setIsUploading(false);
     clearDraftSilently();
 
+    // Stitch existing URLs and newly-uploaded URLs back together in the
+    // order the user arranged them in.
+    let uploadedIndex = 0;
+    const imageUrls = images.map((item) =>
+      item.kind === "existing" ? item.url : uploadedUrls[uploadedIndex++]
+    );
+
     startTransition(async () => {
-      const result = await createListingAction(
-        { ...previewValues, images: imageUrls },
-        { syncNumberToProfile: !useDifferentNumber }
-      );
-      // createListingAction redirects on success, so reaching here means it failed.
+      const result = isEdit
+        ? await updateListingAction(listingId!, { ...previewValues, images: imageUrls })
+        : await createListingAction(
+            { ...previewValues, images: imageUrls },
+            { syncNumberToProfile: !useDifferentNumber }
+          );
+      // Both actions redirect on success, so reaching here means it failed.
       if (result?.error) {
         setFormError(result.error);
         setPreviewValues(null);
@@ -276,8 +321,11 @@ export function PostListingForm({
           </label>
 
           <div className="flex flex-wrap gap-3">
-            {imageFiles.map((file, index) => (
-              <div key={index} className="relative size-24 overflow-hidden rounded-lg border">
+            {images.map((item, index) => (
+              <div
+                key={item.kind === "existing" ? item.url : item.previewUrl}
+                className="relative size-24 overflow-hidden rounded-lg border"
+              >
                 <Image
                   src={imagePreviewUrls[index] ?? ""}
                   alt={`Upload ${index + 1}`}
@@ -322,7 +370,7 @@ export function PostListingForm({
                   </button>
                   <button
                     type="button"
-                    disabled={index === imageFiles.length - 1}
+                    disabled={index === images.length - 1}
                     onClick={() => moveImage(index, 1)}
                     aria-label="Move photo later"
                     className="p-0.5 text-white disabled:opacity-30"
@@ -333,7 +381,7 @@ export function PostListingForm({
               </div>
             ))}
 
-            {imageFiles.length < MAX_LISTING_IMAGES ? (
+            {images.length < MAX_LISTING_IMAGES ? (
               <label className="flex size-24 cursor-pointer items-center justify-center rounded-lg border border-dashed text-xs text-muted-foreground hover:bg-accent">
                 + Add photo
                 <input
@@ -346,7 +394,7 @@ export function PostListingForm({
               </label>
             ) : null}
           </div>
-          {imageFiles.length > 1 ? (
+          {images.length > 1 ? (
             <p className="text-xs text-muted-foreground">
               The first photo is your cover photo — tap the star on another photo to make it the
               cover, or use the arrows to reorder.
@@ -628,7 +676,7 @@ export function PostListingForm({
         <div className="grid gap-2">
           <FormLabel>WhatsApp number</FormLabel>
 
-          {hasProfileNumber ? (
+          {hasProfileNumber && !isEdit ? (
             <div className="flex items-center gap-2">
               <Checkbox
                 id="useProfileNumber"
@@ -679,41 +727,53 @@ export function PostListingForm({
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="termsAccepted"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start gap-2 space-y-0">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={(checked) => field.onChange(checked === true)}
-                />
-              </FormControl>
-              <FormLabel className="font-normal">
-                I agree to Threddo&apos;s{" "}
-                <a href="/terms" target="_blank" className="underline">
-                  Terms of Service
-                </a>{" "}
-                and confirm this listing follows the{" "}
-                <a href="/safety" target="_blank" className="underline">
-                  community guidelines
-                </a>
-                .
-              </FormLabel>
-            </FormItem>
-          )}
-        />
-        {form.formState.errors.termsAccepted ? (
-          <p className="-mt-6 text-sm text-destructive">
-            {form.formState.errors.termsAccepted.message}
+        {isEdit ? (
+          <input type="hidden" {...form.register("termsAccepted")} value="true" />
+        ) : (
+          <>
+            <FormField
+              control={form.control}
+              name="termsAccepted"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start gap-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal">
+                    I agree to Threddo&apos;s{" "}
+                    <a href="/terms" target="_blank" className="underline">
+                      Terms of Service
+                    </a>{" "}
+                    and confirm this listing follows the{" "}
+                    <a href="/safety" target="_blank" className="underline">
+                      community guidelines
+                    </a>
+                    .
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+            {form.formState.errors.termsAccepted ? (
+              <p className="-mt-6 text-sm text-destructive">
+                {form.formState.errors.termsAccepted.message}
+              </p>
+            ) : null}
+          </>
+        )}
+
+        {isEdit ? (
+          <p className="-mt-6 text-xs text-muted-foreground">
+            Saving will send this listing back for review before it&apos;s visible again.
           </p>
         ) : null}
 
         {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
 
         <Button type="submit" className="bg-[#E8A33D] text-[#1B1F3B] hover:bg-[#f0b563]">
-          Preview listing
+          {isEdit ? "Preview changes" : "Preview listing"}
         </Button>
       </form>
 
@@ -724,6 +784,8 @@ export function PostListingForm({
         onClose={() => setPreviewValues(null)}
         onConfirm={confirmPost}
         isSubmitting={isSubmitting}
+        confirmLabel={isEdit ? "Confirm & save" : "Confirm & post"}
+        submittingLabel={isEdit ? "Saving…" : "Posting…"}
       />
     </Form>
   );
