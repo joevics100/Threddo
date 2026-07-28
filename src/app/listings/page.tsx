@@ -5,6 +5,7 @@ import type { SuitableFor } from "@/types/database.types";
 
 import { createClient } from "@/lib/supabase/server";
 
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { ListingCard } from "@/components/shared/ListingCard";
 import { ActiveFilterChips } from "@/features/listings/components/ActiveFilterChips";
 import { ListingSearchBox } from "@/features/listings/components/ListingSearchBox";
@@ -14,10 +15,6 @@ import {
   SUITABLE_FOR_OPTIONS
 } from "@/features/listings/constants/listing-options";
 import { sortCategoriesOtherLast } from "@/features/listings/lib/sort-categories";
-
-export const metadata: Metadata = {
-  title: "Browse listings"
-};
 
 const PAGE_SIZE = 24;
 
@@ -40,6 +37,66 @@ interface ListingsPageProps {
     sort?: string;
     page?: string;
   }>;
+}
+
+export async function generateMetadata({ searchParams }: ListingsPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const supabase = await createClient();
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("name, slug, parent_id")
+    .order("name");
+
+  const category = categories?.find((c) => c.slug === params.category);
+  const subcategory = categories?.find((c) => c.slug === params.subcategory);
+
+  let title = "Browse listings";
+  let description =
+    "Browse secondhand clothes, shoes, bags, and more for sale or free across Nigeria on Threddo.";
+
+  if (subcategory && category) {
+    title = `${subcategory.name} — ${category.name}`;
+    description = `Shop ${subcategory.name.toLowerCase()} in ${category.name.toLowerCase()} — secondhand and new, for sale or free, near you in Nigeria.`;
+  } else if (category) {
+    title = `${category.name} for sale in Nigeria`;
+    description = `Browse ${category.name.toLowerCase()} — secondhand and new, for sale or free, near you in Nigeria.`;
+  } else if (params.q) {
+    title = `"${params.q}" — search results`;
+    description = `Results for "${params.q}" on Threddo — secondhand fashion marketplace in Nigeria.`;
+  }
+
+  // The clean, "canonical" dimensions of a listings page worth ranking on
+  // their own — free-text search, price range, brand/color/size, sort, and
+  // pagination all create near-infinite low-value URL combinations, so those
+  // get folded into the canonical version instead of indexed separately.
+  const canonicalParams = new URLSearchParams();
+  if (params.category) canonicalParams.set("category", params.category);
+  if (params.subcategory) canonicalParams.set("subcategory", params.subcategory);
+  if (params.suitableFor) canonicalParams.set("suitableFor", params.suitableFor);
+  if (params.freeOnly) canonicalParams.set("freeOnly", params.freeOnly);
+  const canonicalQuery = canonicalParams.toString();
+  const canonical = `/listings${canonicalQuery ? `?${canonicalQuery}` : ""}`;
+
+  const hasNoiseParams = Boolean(
+    params.q ||
+    params.brand ||
+    params.color ||
+    params.size ||
+    params.minPrice ||
+    params.maxPrice ||
+    params.verifiedOnly ||
+    params.condition ||
+    params.state ||
+    params.lga ||
+    (params.page && params.page !== "1")
+  );
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    robots: hasNoiseParams ? { index: false, follow: true } : { index: true, follow: true }
+  };
 }
 
 export default async function ListingsPage({ searchParams }: ListingsPageProps) {
@@ -159,6 +216,21 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8 pb-24 sm:pb-8">
+      <Breadcrumbs
+        items={[
+          { name: "Browse listings", href: category ? "/listings" : undefined },
+          ...(category
+            ? [
+                {
+                  name: category.name,
+                  href: subcategory ? `/listings?category=${category.slug}` : undefined
+                }
+              ]
+            : []),
+          ...(subcategory && category ? [{ name: subcategory.name }] : [])
+        ]}
+      />
+
       <h1 className="text-3xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
         Browse listings
       </h1>

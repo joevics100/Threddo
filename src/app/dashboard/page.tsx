@@ -21,7 +21,8 @@ import { ContactDialog } from "@/features/account";
 import { signOutAction } from "@/features/auth";
 
 export const metadata: Metadata = {
-  title: "Profile"
+  title: "Profile",
+  robots: { index: false, follow: false }
 };
 
 export default async function ProfilePage() {

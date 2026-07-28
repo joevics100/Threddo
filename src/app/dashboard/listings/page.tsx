@@ -11,7 +11,8 @@ import { DeleteListingButton } from "@/features/listings/components/DeleteListin
 import { formatNaira } from "@/features/listings/lib/format";
 
 export const metadata: Metadata = {
-  title: "My listings"
+  title: "My listings",
+  robots: { index: false, follow: false }
 };
 
 const STATUS_STYLES: Record<string, string> = {

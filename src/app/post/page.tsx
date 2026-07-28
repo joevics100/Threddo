@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { PostListingForm } from "@/features/listings";
 
 export const metadata: Metadata = {
-  title: "Post a listing"
+  title: "Post a listing",
+  robots: { index: false, follow: true }
 };
 
 export default async function PostListingPage() {

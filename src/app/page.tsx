@@ -1,11 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
+import { siteConfig } from "@/config/site.config";
+
+import { JsonLd } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 
 import { CategoryCard } from "@/components/shared/CategoryCard";
 import { ListingCard } from "@/components/shared/ListingCard";
 import { HomeSearchBar } from "@/features/listings/components/HomeSearchBar";
 import { sortCategoriesOtherLast } from "@/features/listings/lib/sort-categories";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" }
+};
 
 const QUICK_FILTERS = [
   { label: "Female", href: "/listings?suitableFor=female" },
@@ -52,6 +60,28 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#FBF8F3]">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: siteConfig.name,
+          url: siteConfig.url,
+          description: siteConfig.description
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: siteConfig.name,
+          url: siteConfig.url,
+          potentialAction: {
+            "@type": "SearchAction",
+            target: `${siteConfig.url}/listings?q={search_term_string}`,
+            "query-input": "required name=search_term_string"
+          }
+        }}
+      />
       {/* Hero */}
       <section
         className="relative overflow-hidden bg-[#1B1F3B] bg-cover bg-center text-white"

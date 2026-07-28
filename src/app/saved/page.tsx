@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { ListingCard } from "@/components/shared/ListingCard";
 
 export const metadata: Metadata = {
-  title: "Saved listings"
+  title: "Saved listings",
+  robots: { index: false, follow: true }
 };
 
 export default async function SavedPage() {

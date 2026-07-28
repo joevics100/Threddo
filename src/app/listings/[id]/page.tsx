@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { env } from "@/env";
-
 import { timeAgo } from "@/lib/date";
+import { absoluteUrl, JsonLd, productJsonLd } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { ListingCard } from "@/components/shared/ListingCard";
 import { ListingImageGallery } from "@/features/listings/components/ListingImageGallery";
 import { SaveButton } from "@/features/listings/components/SaveButton";
@@ -34,7 +34,7 @@ async function getListing(id: string) {
   const { data: listing } = await supabase
     .from("listings")
     .select(
-      "*, category:categories!listings_category_id_fkey(name), seller:profiles!listings_user_id_fkey(full_name, whatsapp_number, phone, avatar_url, is_verified, created_at)"
+      "*, category:categories!listings_category_id_fkey(name, slug, parent_id), seller:profiles!listings_user_id_fkey(full_name, whatsapp_number, phone, avatar_url, is_verified, created_at)"
     )
     .eq("id", id)
     .single();
@@ -45,7 +45,41 @@ async function getListing(id: string) {
 export async function generateMetadata({ params }: ListingDetailPageProps): Promise<Metadata> {
   const { id } = await params;
   const listing = await getListing(id);
-  return { title: listing?.title ?? "Listing" };
+
+  if (!listing) {
+    return { title: "Listing not found" };
+  }
+
+  const description = listing.description
+    ? listing.description.slice(0, 155) + (listing.description.length > 155 ? "…" : "")
+    : `${listing.title} — ${listing.is_free ? "free" : formatNaira(listing.price)} on Threddo, ${[listing.lga, listing.state].filter(Boolean).join(", ")}.`;
+  const url = `/listings/${id}`;
+  const image = listing.images?.[0];
+
+  return {
+    title: listing.title,
+    description,
+    alternates: { canonical: url },
+    // Only approved listings are meant to be found by anyone but the owner —
+    // pending/rejected ones stay reachable by direct link but shouldn't rank.
+    robots:
+      listing.status === "approved"
+        ? { index: true, follow: true }
+        : { index: false, follow: false },
+    openGraph: {
+      type: "website",
+      title: listing.title,
+      description,
+      url,
+      images: image ? [{ url: image, width: 1200, height: 1200, alt: listing.title }] : undefined
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: listing.title,
+      description,
+      images: image ? [image] : undefined
+    }
+  };
 }
 
 export default async function ListingDetailPage({ params }: ListingDetailPageProps) {
@@ -87,6 +121,33 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
     .order("created_at", { ascending: false })
     .limit(4);
 
+  let parentCategory: { name: string; slug: string } | null = null;
+  if (listing.category?.parent_id) {
+    const { data } = await supabase
+      .from("categories")
+      .select("name, slug")
+      .eq("id", listing.category.parent_id)
+      .single();
+    parentCategory = data;
+  }
+
+  const breadcrumbItems = [
+    ...(parentCategory
+      ? [{ name: parentCategory.name, href: `/listings?category=${parentCategory.slug}` }]
+      : []),
+    ...(listing.category
+      ? [
+          {
+            name: listing.category.name,
+            href: parentCategory
+              ? `/listings?category=${parentCategory.slug}&subcategory=${listing.category.slug}`
+              : `/listings?category=${listing.category.slug}`
+          }
+        ]
+      : []),
+    { name: listing.title }
+  ];
+
   const sellerNumber =
     listing.whatsapp_number || listing.seller?.whatsapp_number || listing.seller?.phone || "";
   const whatsappLink = sellerNumber
@@ -98,6 +159,24 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-12 pb-24 sm:pb-12">
+      {listing.status === "approved" ? (
+        <JsonLd
+          data={productJsonLd({
+            id: listing.id,
+            title: listing.title,
+            description: listing.description,
+            images: listing.images ?? [],
+            price: listing.price,
+            isFree: listing.is_free,
+            condition: listing.condition,
+            brand: listing.brand,
+            category: listing.category?.name ?? null
+          })}
+        />
+      ) : null}
+
+      <Breadcrumbs items={breadcrumbItems} />
+
       {listing.status !== "approved" ? (
         <div className="mb-6 rounded-lg border border-[#E8A33D]/40 bg-[#E8A33D]/10 px-4 py-2 text-sm font-medium text-[#1B1F3B]">
           {listing.status === "pending"
@@ -132,10 +211,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
               {isSaved !== undefined ? (
                 <SaveButton listingId={listing.id} initialSaved={isSaved} />
               ) : null}
-              <ShareButton
-                title={listing.title}
-                url={`${env.NEXT_PUBLIC_SITE_URL}/listings/${listing.id}`}
-              />
+              <ShareButton title={listing.title} url={absoluteUrl(`/listings/${listing.id}`)} />
             </div>
           </div>
 
