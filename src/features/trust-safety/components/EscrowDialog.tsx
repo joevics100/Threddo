@@ -14,42 +14,46 @@ import {
 } from "@/ui";
 
 export function EscrowDialog() {
-  const hasGroupLink = Boolean(siteConfig.escrowWhatsAppGroupUrl);
+  const hasSupportNumber = Boolean(siteConfig.escrowSupportWhatsAppLink);
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button type="button" variant="outline" size="sm">
-          Use Escrow
+          Trade safely
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Trade safer with Escrow</DialogTitle>
+          <DialogTitle>Trade safely on Threddo</DialogTitle>
           <DialogDescription>
-            A neutral moderator holds payment until the buyer confirms the item arrived as
-            described.
+            Threddo doesn&apos;t hold or process payments — buyers and sellers arrange payment
+            directly between themselves, outside the app.
           </DialogDescription>
         </DialogHeader>
 
         <ol className="grid list-decimal gap-2 pl-5 text-sm text-black/70">
-          <li>Join the Threddo Escrow WhatsApp group using the link below.</li>
-          <li>Message the moderator with both usernames and the agreed price.</li>
-          <li>Buyer sends payment to the moderator, not the seller directly.</li>
-          <li>Seller ships or hands over the item; buyer confirms it&apos;s as described.</li>
-          <li>Moderator releases payment to the seller.</li>
+          <li>Meet in a public place, or verify the seller/item before paying in full.</li>
+          <li>Avoid sending full payment upfront to someone you&apos;ve never met.</li>
+          <li>Inspect the item (or ask for extra photos/video) before you complete payment.</li>
+          <li>Use a bank transfer method that shows a confirmed receipt on both ends.</li>
+          <li>If anything feels off, stop and report the listing or seller.</li>
         </ol>
 
         <DialogFooter>
-          {hasGroupLink ? (
+          {hasSupportNumber ? (
             <Button asChild className="bg-[#25D366] text-white hover:opacity-90">
-              <a href={siteConfig.escrowWhatsAppGroupUrl} target="_blank" rel="noopener noreferrer">
-                Join WhatsApp group
+              <a
+                href={siteConfig.escrowSupportWhatsAppLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Chat with Threddo support
               </a>
             </Button>
           ) : (
             <p className="text-sm text-black/50">
-              Escrow group link coming soon — check back shortly.
+              Support contact coming soon — check back shortly.
             </p>
           )}
         </DialogFooter>

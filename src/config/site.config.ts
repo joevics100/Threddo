@@ -8,6 +8,6 @@ export const siteConfig = {
     twitter: "",
     instagram: ""
   },
-  // FIXME: add your escrow WhatsApp group invite link (chat.whatsapp.com/...)
-  escrowWhatsAppGroupUrl: ""
+  // TODO: set your support WhatsApp number/link, e.g. "https://wa.me/2348012345678"
+  escrowSupportWhatsAppLink: ""
 };

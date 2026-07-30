@@ -49,31 +49,52 @@ export async function generateMetadata({ searchParams }: ListingsPageProps): Pro
 
   const category = categories?.find((c) => c.slug === params.category);
   const subcategory = categories?.find((c) => c.slug === params.subcategory);
+  const conditionLabel = CONDITION_OPTIONS.find((c) => c.value === params.condition)?.label;
+  const location = [params.lga, params.state].filter(Boolean).join(", ");
+
+  const subject = subcategory?.name ?? category?.name;
+  const subjectLower = subject?.toLowerCase();
 
   let title = "Browse listings";
   let description =
     "Browse secondhand clothes, shoes, bags, and more for sale or free across Nigeria on Threddo.";
 
-  if (subcategory && category) {
+  if (subject && location) {
+    title = `${subject} for sale in ${location}`;
+    description = `Shop ${subjectLower} — secondhand and new, for sale or free — in ${location} on Threddo.`;
+  } else if (subcategory && category) {
     title = `${subcategory.name} — ${category.name}`;
-    description = `Shop ${subcategory.name.toLowerCase()} in ${category.name.toLowerCase()} — secondhand and new, for sale or free, near you in Nigeria.`;
+    description = `Shop ${subjectLower} in ${category.name.toLowerCase()} — secondhand and new, for sale or free, near you in Nigeria.`;
   } else if (category) {
     title = `${category.name} for sale in Nigeria`;
     description = `Browse ${category.name.toLowerCase()} — secondhand and new, for sale or free, near you in Nigeria.`;
+  } else if (location) {
+    title = `Secondhand fashion for sale in ${location}`;
+    description = `Browse clothes, shoes, bags, and more for sale or free in ${location} on Threddo.`;
   } else if (params.q) {
     title = `"${params.q}" — search results`;
     description = `Results for "${params.q}" on Threddo — secondhand fashion marketplace in Nigeria.`;
   }
 
+  if (conditionLabel && subject) {
+    title = `${conditionLabel} ${subjectLower} for sale${location ? ` in ${location}` : " in Nigeria"}`;
+  }
+
   // The clean, "canonical" dimensions of a listings page worth ranking on
-  // their own — free-text search, price range, brand/color/size, sort, and
-  // pagination all create near-infinite low-value URL combinations, so those
-  // get folded into the canonical version instead of indexed separately.
+  // their own. Category/subcategory, condition, and location (state/lga) are
+  // real, search-worthy landing pages for a Nigeria-wide marketplace — e.g.
+  // "clothes for sale in Lagos" — so they stay indexable. Free-text search,
+  // price range, brand/color/size, sort, and pagination create near-infinite
+  // low-value combinations instead, so those get folded into the canonical
+  // version rather than indexed separately.
   const canonicalParams = new URLSearchParams();
   if (params.category) canonicalParams.set("category", params.category);
   if (params.subcategory) canonicalParams.set("subcategory", params.subcategory);
   if (params.suitableFor) canonicalParams.set("suitableFor", params.suitableFor);
   if (params.freeOnly) canonicalParams.set("freeOnly", params.freeOnly);
+  if (params.condition) canonicalParams.set("condition", params.condition);
+  if (params.state) canonicalParams.set("state", params.state);
+  if (params.lga) canonicalParams.set("lga", params.lga);
   const canonicalQuery = canonicalParams.toString();
   const canonical = `/listings${canonicalQuery ? `?${canonicalQuery}` : ""}`;
 
@@ -85,9 +106,6 @@ export async function generateMetadata({ searchParams }: ListingsPageProps): Pro
     params.minPrice ||
     params.maxPrice ||
     params.verifiedOnly ||
-    params.condition ||
-    params.state ||
-    params.lga ||
     (params.page && params.page !== "1")
   );
 
