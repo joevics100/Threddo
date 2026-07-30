@@ -3,9 +3,36 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { DeleteObjectsCommand } from "@aws-sdk/client-s3";
+
+import { env } from "@/env";
+
+import { r2Client } from "@/lib/r2";
 import { createClient } from "@/lib/supabase/server";
 
 import { listingSchema, type ListingInput } from "@/features/listings/schemas/listing.schemas";
+
+/** Deletes R2 objects for the given public image URLs. Never throws — a failed cleanup shouldn't block the listing delete itself. */
+async function deleteR2Images(imageUrls: string[]): Promise<void> {
+  const publicUrlPrefix = `${env.R2_PUBLIC_URL.replace(/\/$/, "")}/`;
+  const keys = imageUrls
+    .filter((url) => url.startsWith(publicUrlPrefix))
+    .map((url) => url.slice(publicUrlPrefix.length));
+
+  if (keys.length === 0) return;
+
+  try {
+    await r2Client.send(
+      new DeleteObjectsCommand({
+        Bucket: env.R2_BUCKET_NAME,
+        Delete: { Objects: keys.map((Key) => ({ Key })) }
+      })
+    );
+  } catch {
+    // Orphaned R2 objects cost pennies and can be cleaned up later —
+    // failing the whole delete over storage isn't worth it.
+  }
+}
 
 export interface CreateListingResult {
   error?: string;
@@ -13,6 +40,7 @@ export interface CreateListingResult {
 
 export async function createListingAction(
   values: ListingInput,
+
   options?: { syncNumberToProfile?: boolean }
 ): Promise<CreateListingResult> {
   const parsed = listingSchema.safeParse(values);
@@ -179,17 +207,7 @@ export async function deleteListingAction(listingId: string): Promise<DeleteList
   }
 
   // Best-effort photo cleanup — don't fail the whole action over storage.
-  const paths = (listing.images ?? [])
-    .map((url: string) => {
-      const marker = "/listings/";
-      const index = url.indexOf(marker);
-      return index === -1 ? null : url.slice(index + marker.length);
-    })
-    .filter((path): path is string => Boolean(path));
-
-  if (paths.length > 0) {
-    await supabase.storage.from("listings").remove(paths);
-  }
+  await deleteR2Images(listing.images ?? []);
 
   revalidatePath("/dashboard/listings");
   return {};

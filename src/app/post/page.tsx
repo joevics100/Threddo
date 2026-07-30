@@ -38,7 +38,6 @@ export default async function PostListingPage() {
 
       <div className="mt-8">
         <PostListingForm
-          userId={user.id}
           categories={categories ?? []}
           defaultWhatsappNumber={profile?.phone ?? profile?.whatsapp_number ?? ""}
         />
