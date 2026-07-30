@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { LoginForm } from "@/features/auth";
 
 export const metadata: Metadata = {
-  title: "Log in"
+  title: "Log in",
+  robots: { index: false, follow: true }
 };
 
 export default async function LoginPage({

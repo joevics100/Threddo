@@ -26,7 +26,17 @@ async function getSeller(id: string) {
 export async function generateMetadata({ params }: SellerProfilePageProps): Promise<Metadata> {
   const { id } = await params;
   const seller = await getSeller(id);
-  return { title: seller?.full_name ? `${seller.full_name} — Seller profile` : "Seller profile" };
+
+  if (!seller) {
+    return { title: "Seller profile", robots: { index: false, follow: false } };
+  }
+
+  const name = seller.full_name || "This seller";
+  return {
+    title: `${name} — Seller profile`,
+    description: `See ${name}'s listings and reviews on Threddo.`,
+    alternates: { canonical: `/sellers/${id}` }
+  };
 }
 
 export default async function SellerProfilePage({ params }: SellerProfilePageProps) {

@@ -11,7 +11,8 @@ interface EditListingPageProps {
 }
 
 export const metadata: Metadata = {
-  title: "Edit listing"
+  title: "Edit listing",
+  robots: { index: false, follow: false }
 };
 
 export default async function EditListingPage({ params }: EditListingPageProps) {

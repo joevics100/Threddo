@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Listing submitted"
+  title: "Listing submitted",
+  robots: { index: false, follow: true }
 };
 
 export default function PostSuccessPage() {

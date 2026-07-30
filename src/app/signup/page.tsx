@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { SignupForm } from "@/features/auth";
 
 export const metadata: Metadata = {
-  title: "Sign up"
+  title: "Sign up",
+  robots: { index: false, follow: true }
 };
 
 export default function SignupPage() {

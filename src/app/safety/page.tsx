@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Safety Guide"
+  title: "Safety Guide",
+  alternates: { canonical: "/safety" }
 };
 
 const GUIDELINES = [
