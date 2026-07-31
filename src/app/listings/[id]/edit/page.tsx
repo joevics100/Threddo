@@ -80,7 +80,6 @@ export default async function EditListingPage({ params }: EditListingPageProps) 
 
       <div className="mt-8">
         <PostListingForm
-          userId={user.id}
           categories={categories ?? []}
           defaultWhatsappNumber={listing.whatsapp_number ?? ""}
           mode="edit"

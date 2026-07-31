@@ -12,7 +12,20 @@ const nextConfig: NextConfig = {
   htmlLimitedBots: /.*/,
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/**" }
+      // Legacy Supabase Storage images — kept so photos uploaded before the
+      // R2 migration keep rendering; safe to remove once none remain.
+      { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/**" },
+      // Cloudflare R2's own r2.dev subdomain (used if no custom domain is set).
+      { protocol: "https", hostname: "*.r2.dev" },
+      // Whatever custom domain R2_PUBLIC_URL points to, e.g. images.threddo.com.ng.
+      ...(process.env.R2_PUBLIC_URL
+        ? [
+            {
+              protocol: new URL(process.env.R2_PUBLIC_URL).protocol.replace(":", "") as "https",
+              hostname: new URL(process.env.R2_PUBLIC_URL).hostname
+            }
+          ]
+        : [])
     ]
   },
   turbopack: {

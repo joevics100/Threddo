@@ -41,7 +41,6 @@ import {
 } from "@/features/listings/schemas/listing.schemas";
 
 interface PostListingFormProps {
-  userId: string;
   categories: CategoryOption[];
   defaultWhatsappNumber: string;
   /** "edit" pre-fills the form from an existing listing and saves in place instead of creating a new one. */
@@ -53,7 +52,8 @@ interface PostListingFormProps {
 
 /** One photo slot — either an already-uploaded URL or a freshly-picked file. */
 type ImageItem =
-  { kind: "existing"; url: string } | { kind: "new"; file: File; previewUrl: string };
+  | { kind: "existing"; url: string }
+  | { kind: "new"; file: File; previewUrl: string };
 
 const DRAFT_STORAGE_KEY = "threddo:draft-listing";
 
@@ -82,7 +82,6 @@ const DEFAULT_VALUES = (defaultWhatsappNumber: string): ListingFormInput => ({
 });
 
 export function PostListingForm({
-  userId,
   categories,
   defaultWhatsappNumber,
   mode = "create",
@@ -195,11 +194,13 @@ export function PostListingForm({
     const incoming = Array.from(fileList);
     const combined: ImageItem[] = [
       ...images,
-      ...incoming.map((file): ImageItem => ({
-        kind: "new",
-        file,
-        previewUrl: URL.createObjectURL(file)
-      }))
+      ...incoming.map(
+        (file): ImageItem => ({
+          kind: "new",
+          file,
+          previewUrl: URL.createObjectURL(file)
+        })
+      )
     ];
 
     if (combined.length > MAX_LISTING_IMAGES) {
@@ -261,7 +262,7 @@ export function PostListingForm({
     setIsUploading(true);
     let uploadedUrls: string[];
     try {
-      uploadedUrls = newFiles.length > 0 ? await uploadListingImages(newFiles, userId) : [];
+      uploadedUrls = newFiles.length > 0 ? await uploadListingImages(newFiles) : [];
     } catch (error) {
       setIsUploading(false);
       setImageError(error instanceof Error ? error.message : "Couldn't upload your photos.");
