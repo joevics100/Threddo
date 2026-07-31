@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Heart, Home, ListFilter, Plus, Settings } from "lucide-react";
+import { Heart, Home, ListFilter, Plus, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -11,13 +11,13 @@ const NAV_ITEMS = [
   { href: "/", label: "Home", icon: Home },
   { href: "/listings", label: "Listings", icon: ListFilter },
   { href: "/saved", label: "Saved", icon: Heart },
-  { href: "/settings", label: "Settings", icon: Settings }
+  { href: "/dashboard", label: "Profile", icon: User }
 ] as const;
 
 /**
  * Mobile-only bottom tab bar (hidden at the `sm` breakpoint and above, where
  * the header's nav links take over). Auth is enforced by middleware, not
- * here — tapping "Saved", "Settings", or the "+" button while logged out
+ * here — tapping "Saved", "Profile", or the "+" button while logged out
  * just redirects to /login, same as typing the URL directly.
  */
 export function BottomNav() {
@@ -38,7 +38,7 @@ export function BottomNav() {
         </Link>
 
         <TabLink item={NAV_ITEMS[2]} active={pathname.startsWith("/saved")} />
-        <TabLink item={NAV_ITEMS[3]} active={pathname.startsWith("/settings")} />
+        <TabLink item={NAV_ITEMS[3]} active={pathname.startsWith("/dashboard")} />
       </div>
     </nav>
   );

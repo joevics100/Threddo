@@ -48,7 +48,7 @@ export const Header = async () => {
                 href="/dashboard"
                 className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
               >
-                Dashboard
+                Profile
               </Link>
               {isAdmin ? (
                 <Link
@@ -58,12 +58,6 @@ export const Header = async () => {
                   Admin
                 </Link>
               ) : null}
-              <Link
-                href="/settings"
-                className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
-              >
-                Settings
-              </Link>
             </>
           ) : (
             <>
