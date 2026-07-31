@@ -26,7 +26,7 @@ export default function AboutPage() {
           A lot of good, wearable clothing sits unused in wardrobes across the country while other
           people are actively looking for exactly that item at a fair price — or for free. Threddo
           exists to close that gap: a simple, WhatsApp-first way to connect sellers with buyers,
-          without the friction of shipping, escrow accounts, or platform cuts.
+          without the friction of shipping or platform cuts.
         </p>
 
         <div>
@@ -41,8 +41,10 @@ export default function AboutPage() {
         <div>
           <h2 className="text-lg font-semibold text-[#1B1F3B]">What Threddo is not</h2>
           <p className="mt-2">
-            Threddo doesn&apos;t hold your money, ship your items, or take a cut of any sale. Every
-            transaction happens directly between buyer and seller. See our{" "}
+            Threddo doesn&apos;t ship your items or take a cut of any sale — deals are made directly
+            between buyer and seller. For extra peace of mind on higher-value items, Threddo Escrow
+            is available on request: admin holds the buyer&apos;s payment until they&apos;ve
+            confirmed the item arrived as described. See our{" "}
             <Link href="/safety" className="font-semibold text-[#E8543D] hover:underline">
               Safety Guide
             </Link>{" "}

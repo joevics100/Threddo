@@ -24,8 +24,8 @@ const GUIDELINES = [
     body: "For higher-value items, or if anything about the deal feels off, bring someone with you or let a friend know where you're going and who you're meeting."
   },
   {
-    title: "Chat with Threddo support if unsure",
-    body: "Every listing has a \u201cTrade safely\u201d button with quick safety tips and a direct WhatsApp line to Threddo support if you have questions before completing a deal."
+    title: "Use Escrow for higher-value items",
+    body: "The \u201cTrade safely\u201d button on any listing walks you through Threddo Escrow: admin holds the buyer's payment in a shared WhatsApp group until the buyer confirms the item has arrived as described, then releases the funds to the seller."
   },
   {
     title: "Check seller reviews",
