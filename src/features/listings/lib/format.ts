@@ -6,7 +6,7 @@ import {
 } from "@/features/listings/constants/listing-options";
 
 export function formatNaira(price: number | null): string {
-  if (price === null) return "Free";
+  if (price === null) return "Donation";
   return `₦${price.toLocaleString("en-NG")}`;
 }
 

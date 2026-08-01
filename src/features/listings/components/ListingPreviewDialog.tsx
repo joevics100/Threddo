@@ -82,7 +82,7 @@ export function ListingPreviewDialog({
                       : "bg-[#E8543D]/10 text-[#E8543D]"
                   }`}
                 >
-                  {values.isFree ? "Free" : "For sale"}
+                  {values.isFree ? "Donation" : "For sale"}
                 </span>
                 {values.isNegotiable ? (
                   <span className="inline-block rounded-full bg-[#E8A33D]/15 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-[#E8A33D] uppercase">

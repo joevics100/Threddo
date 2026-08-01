@@ -59,7 +59,7 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FBF8F3]">
+    <main className="min-h-screen">
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -97,12 +97,19 @@ export default async function HomePage() {
           aria-hidden
           className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-[#E8543D] opacity-10 blur-3xl"
         />
-        <div className="relative mx-auto flex max-w-6xl flex-col items-start px-6 py-24 md:py-32">
-          <div className="w-full max-w-xl">
+        <div className="relative mx-auto flex max-w-6xl flex-col items-start px-6 py-10 md:py-14">
+          <span className="mb-4 rounded-full border border-white/20 px-4 py-1.5 text-xs font-medium tracking-widest text-[#E8A33D] uppercase">
+            Made for Nigeria
+          </span>
+          <h1 className="max-w-2xl text-3xl leading-[1.1] font-[var(--font-display)] font-bold tracking-tight md:text-6xl">
+            Give it away. Or sell it fast.
+          </h1>
+
+          <div className="mt-6 w-full max-w-xl">
             <HomeSearchBar />
           </div>
 
-          <div className="mt-8 flex w-full flex-wrap gap-2 overflow-x-auto pb-1">
+          <div className="mt-4 flex w-full flex-wrap gap-2 overflow-x-auto pb-1">
             {QUICK_FILTERS.map((filter) => (
               <Link
                 key={filter.label}
@@ -113,42 +120,15 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
-
-          <span className="mt-10 mb-5 rounded-full border border-white/20 px-4 py-1.5 text-xs font-medium tracking-widest text-[#E8A33D] uppercase">
-            Made for Nigeria
-          </span>
-          <h1 className="max-w-2xl text-5xl leading-[1.05] font-[var(--font-display)] font-bold tracking-tight md:text-7xl">
-            Give it away.
-            <br />
-            Or sell it fast.
-          </h1>
-          <p className="mt-6 max-w-lg text-lg text-white/70">
-            Threddo connects your wardrobe to someone who needs it — clothes, shoes, bags, and hair,
-            posted in minutes and picked up over WhatsApp. No fees. No middleman. No hassle.
-          </p>
-          <div className="mt-9 flex flex-wrap gap-4">
-            <Link
-              href="/listings"
-              className="rounded-lg bg-[#E8A33D] px-7 py-3.5 font-semibold text-[#1B1F3B] transition hover:bg-[#f0b563] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            >
-              Browse listings
-            </Link>
-            <Link
-              href="/post"
-              className="rounded-lg border border-white/30 px-7 py-3.5 font-semibold text-white transition hover:border-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            >
-              Post an item — it&apos;s free
-            </Link>
-          </div>
         </div>
       </section>
 
       {/* Categories */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <h2 className="text-3xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
+      <section className="mx-auto max-w-6xl px-6 py-12">
+        <h2 className="text-2xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
           What are you looking for?
         </h2>
-        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
           {topLevelCategories.map((category) => (
             <CategoryCard
               key={category.slug}
@@ -165,10 +145,10 @@ export default async function HomePage() {
       </section>
 
       {/* Recent listings */}
-      <section className="bg-white py-20">
+      <section className="bg-white py-12">
         <div className="mx-auto max-w-6xl px-6">
           <div className="flex items-end justify-between">
-            <h2 className="text-3xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
+            <h2 className="text-2xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
               Fresh on Threddo
             </h2>
             <Link href="/listings" className="text-sm font-semibold text-[#E8543D] hover:underline">
@@ -177,7 +157,7 @@ export default async function HomePage() {
           </div>
 
           {listings && listings.length > 0 ? (
-            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {listings.map((listing) => (
                 <ListingCard
                   key={listing.id}
@@ -205,12 +185,33 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Quick pitch — what you're actually getting, in one glance */}
+      <section className="mx-auto max-w-6xl px-6 py-14">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+          <div>
+            <p className="text-3xl font-[var(--font-display)] font-bold text-[#E8A33D]">₦0</p>
+            <p className="mt-1 font-semibold text-[#1B1F3B]">Fees, ever</p>
+            <p className="mt-1 text-sm text-[#1B1F3B]/60">No commission on any sale.</p>
+          </div>
+          <div>
+            <p className="text-3xl font-[var(--font-display)] font-bold text-[#E8A33D]">💬</p>
+            <p className="mt-1 font-semibold text-[#1B1F3B]">Straight to WhatsApp</p>
+            <p className="mt-1 text-sm text-[#1B1F3B]/60">Buyers message you directly.</p>
+          </div>
+          <div>
+            <p className="text-3xl font-[var(--font-display)] font-bold text-[#E8A33D]">🎁</p>
+            <p className="mt-1 font-semibold text-[#1B1F3B]">Sell or donate</p>
+            <p className="mt-1 text-sm text-[#1B1F3B]/60">Your choice, on every listing.</p>
+          </div>
+        </div>
+      </section>
+
       {/* How it works — a real sequence, so numbering earns its place */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <h2 className="text-3xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
+      <section className="mx-auto max-w-6xl px-6 py-14">
+        <h2 className="text-2xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
           How Threddo works
         </h2>
-        <div className="mt-10 grid grid-cols-1 gap-10 md:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-10 md:grid-cols-3">
           {[
             {
               step: "01",

@@ -190,7 +190,7 @@ export function ListingFiltersForm({ categories }: ListingFiltersFormProps) {
             onCheckedChange={(checked) => setFreeOnly(checked === true)}
           />
           <label htmlFor="freeOnly" className="text-sm font-medium">
-            Free items only
+            Donations only
           </label>
         </div>
 
