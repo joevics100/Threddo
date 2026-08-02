@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
-import { SignupForm } from "@/features/auth";
+import { Separator } from "@/ui";
+import { GoogleSignInButton, SignupForm } from "@/features/auth";
 
 export const metadata: Metadata = {
   title: "Sign up",
@@ -19,8 +20,16 @@ export default function SignupPage() {
         </p>
 
         <div className="mt-6">
-          <SignupForm />
+          <GoogleSignInButton />
         </div>
+
+        <div className="my-6 flex items-center gap-3">
+          <Separator className="flex-1" />
+          <span className="text-xs text-black/40 uppercase">or</span>
+          <Separator className="flex-1" />
+        </div>
+
+        <SignupForm />
       </div>
     </main>
   );
