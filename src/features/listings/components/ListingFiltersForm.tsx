@@ -87,7 +87,7 @@ export function ListingFiltersForm({ categories }: ListingFiltersFormProps) {
   }
 
   return (
-    <div className="grid gap-6 pb-40 sm:pb-28">
+    <div className="grid gap-6 pb-28">
       <div>
         <CategorySelect
           categories={categories}
@@ -206,7 +206,7 @@ export function ListingFiltersForm({ categories }: ListingFiltersFormProps) {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-16 z-50 flex gap-3 border-t border-black/5 bg-white p-4 sm:sticky sm:bottom-0 sm:rounded-b-2xl sm:pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      <div className="fixed inset-x-0 bottom-0 z-50 flex gap-3 border-t border-black/5 bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:sticky sm:rounded-b-2xl">
         <Button type="button" variant="outline" onClick={clearFilters} className="flex-1">
           Clear
         </Button>

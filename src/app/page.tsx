@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { CategoryCard } from "@/components/shared/CategoryCard";
 import { ListingCard } from "@/components/shared/ListingCard";
 import { HomeSearchBar } from "@/features/listings/components/HomeSearchBar";
-import { sortCategoriesOtherLast } from "@/features/listings/lib/sort-categories";
+import { sortCategoriesForHomepageGrid } from "@/features/listings/lib/sort-categories";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" }
@@ -48,7 +48,7 @@ export default async function HomePage() {
     savedIds = new Set((saved ?? []).map((s) => s.listing_id));
   }
 
-  const topLevelCategories = sortCategoriesOtherLast(
+  const topLevelCategories = sortCategoriesForHomepageGrid(
     (categories ?? []).filter((c) => !c.parent_id)
   );
   const subcategoryCount = new Map<string, number>();
@@ -98,18 +98,15 @@ export default async function HomePage() {
           className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-[#E8543D] opacity-10 blur-3xl"
         />
         <div className="relative mx-auto flex max-w-6xl flex-col items-start px-6 py-10 md:py-14">
-          <span className="mb-4 rounded-full border border-white/20 px-4 py-1.5 text-xs font-medium tracking-widest text-[#E8A33D] uppercase">
-            Made for Nigeria
-          </span>
           <h1 className="max-w-2xl text-3xl leading-[1.1] font-[var(--font-display)] font-bold tracking-tight md:text-6xl">
-            Give it away. Or sell it fast.
+            Sell your old clothing fast or give it away.
           </h1>
 
           <div className="mt-6 w-full max-w-xl">
             <HomeSearchBar />
           </div>
 
-          <div className="mt-4 flex w-full flex-wrap gap-2 overflow-x-auto pb-1">
+          <div className="mt-4 flex w-full gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {QUICK_FILTERS.map((filter) => (
               <Link
                 key={filter.label}

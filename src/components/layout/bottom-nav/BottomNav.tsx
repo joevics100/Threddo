@@ -23,6 +23,13 @@ const NAV_ITEMS = [
 export function BottomNav() {
   const pathname = usePathname();
 
+  // The filters screen has its own fixed Show results/Clear action bar
+  // pinned to the bottom — showing the tab bar too means two fixed elements
+  // fighting over the same screen-bottom real estate. Simplest reliable fix
+  // is to just not render the tab bar here, rather than guess at pixel
+  // offsets that need to clear the tab bar's height across every device.
+  if (pathname.startsWith("/listings/filters")) return null;
+
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white sm:hidden">
       <div className="mx-auto flex max-w-md items-end justify-between px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
