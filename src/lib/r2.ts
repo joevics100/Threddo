@@ -15,5 +15,13 @@ export const r2Client = new S3Client({
   credentials: {
     accessKeyId: env.R2_ACCESS_KEY_ID,
     secretAccessKey: env.R2_SECRET_ACCESS_KEY
-  }
+  },
+  // Newer AWS SDK versions attach a flexible checksum (e.g. cksum-crc32) to
+  // every request by default. R2 doesn't fully support that feature, and it
+  // ends up baked into the presigned URL's signature — but a plain browser
+  // `fetch(url, { method: "PUT", body: file })` never sends the matching
+  // checksum header, so the upload silently fails. Only compute checksums
+  // when a command explicitly asks for one.
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED"
 });

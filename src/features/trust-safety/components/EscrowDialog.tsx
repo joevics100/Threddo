@@ -13,6 +13,15 @@ import {
   DialogTrigger
 } from "@/ui";
 
+const ESCROW_STEPS = [
+  "Contact admin",
+  "Create a WhatsApp group with the buyer, seller, and admin",
+  "Buyer sends money to admin",
+  "Seller sends the item",
+  "Buyer confirms receipt",
+  "Admin releases funds to seller"
+];
+
 export function EscrowDialog() {
   const hasSupportNumber = Boolean(siteConfig.escrowSupportWhatsAppLink);
 
@@ -25,19 +34,17 @@ export function EscrowDialog() {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Trade safely on Threddo</DialogTitle>
+          <DialogTitle>Threddo Escrow</DialogTitle>
           <DialogDescription>
-            Threddo doesn&apos;t hold or process payments — buyers and sellers arrange payment
-            directly between themselves, outside the app.
+            For extra peace of mind on higher-value items, Threddo admin can hold payment until
+            you&apos;ve confirmed the item is as described.
           </DialogDescription>
         </DialogHeader>
 
         <ol className="grid list-decimal gap-2 pl-5 text-sm text-black/70">
-          <li>Meet in a public place, or verify the seller/item before paying in full.</li>
-          <li>Avoid sending full payment upfront to someone you&apos;ve never met.</li>
-          <li>Inspect the item (or ask for extra photos/video) before you complete payment.</li>
-          <li>Use a bank transfer method that shows a confirmed receipt on both ends.</li>
-          <li>If anything feels off, stop and report the listing or seller.</li>
+          {ESCROW_STEPS.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
         </ol>
 
         <DialogFooter>
@@ -48,7 +55,7 @@ export function EscrowDialog() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Chat with Threddo support
+                Contact admin
               </a>
             </Button>
           ) : (

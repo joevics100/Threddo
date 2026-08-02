@@ -198,7 +198,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
                     : "bg-[#E8543D]/10 text-[#E8543D]"
                 }`}
               >
-                {listing.is_free ? "Free" : "For sale"}
+                {listing.is_free ? "Donation" : "For sale"}
               </span>
               {listing.is_negotiable ? (
                 <span className="inline-block rounded-full bg-[#E8A33D]/15 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-[#E8A33D] uppercase">

@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
 
-import { ThemeSwitcher } from "@/components/shared";
 import { Button } from "@/ui";
 
 export const Header = async () => {
@@ -22,16 +21,16 @@ export const Header = async () => {
   }
 
   return (
-    <header className="border-b border-black/5 bg-white">
+    <header className="bg-[#1B1F3B]">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
+        <Link href="/" className="text-xl font-[var(--font-display)] font-bold text-white">
           Threddo
         </Link>
 
         <nav className="flex items-center gap-4">
           <Link
             href="/listings"
-            className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
+            className="hidden text-sm font-medium text-white/70 hover:text-white sm:inline"
           >
             Browse
           </Link>
@@ -40,36 +39,30 @@ export const Header = async () => {
             <>
               <Link
                 href="/post"
-                className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
+                className="hidden text-sm font-medium text-white/70 hover:text-white sm:inline"
               >
                 Post an item
               </Link>
               <Link
                 href="/dashboard"
-                className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
+                className="hidden text-sm font-medium text-white/70 hover:text-white sm:inline"
               >
-                Dashboard
+                Profile
               </Link>
               {isAdmin ? (
                 <Link
                   href="/admin/listings"
-                  className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
+                  className="hidden text-sm font-medium text-white/70 hover:text-white sm:inline"
                 >
                   Admin
                 </Link>
               ) : null}
-              <Link
-                href="/settings"
-                className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
-              >
-                Settings
-              </Link>
             </>
           ) : (
             <>
               <Link
                 href="/login"
-                className="hidden text-sm font-medium text-[#1B1F3B]/70 hover:text-[#1B1F3B] sm:inline"
+                className="hidden text-sm font-medium text-white/70 hover:text-white sm:inline"
               >
                 Log in
               </Link>
@@ -78,8 +71,6 @@ export const Header = async () => {
               </Button>
             </>
           )}
-
-          <ThemeSwitcher />
         </nav>
       </div>
     </header>

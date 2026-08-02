@@ -63,7 +63,7 @@ export function ListingCard({
             isFree ? "bg-[#1B1F3B]/10 text-[#1B1F3B]" : "bg-[#E8543D]/10 text-[#E8543D]"
           }`}
         >
-          {isFree ? "Free" : "For sale"}
+          {isFree ? "Donation" : "For sale"}
         </span>
         <h3 className="mt-2 truncate text-sm font-semibold text-[#1B1F3B]">{title}</h3>
         <p className="mt-1 text-sm font-bold text-[#1B1F3B]">

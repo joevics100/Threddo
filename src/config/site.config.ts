@@ -8,6 +8,8 @@ export const siteConfig = {
     twitter: "",
     instagram: ""
   },
-  // TODO: set your support WhatsApp number/link, e.g. "https://wa.me/2348012345678"
-  escrowSupportWhatsAppLink: ""
+  // Admin WhatsApp contact for starting an escrow transaction.
+  escrowSupportWhatsAppLink:
+    "https://wa.me/2349112773159?text=" +
+    encodeURIComponent("Hi, I'd like to start an escrow transaction for a Threddo listing.")
 };
