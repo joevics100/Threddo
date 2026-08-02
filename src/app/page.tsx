@@ -97,16 +97,16 @@ export default async function HomePage() {
           aria-hidden
           className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-[#E8543D] opacity-10 blur-3xl"
         />
-        <div className="relative mx-auto flex max-w-6xl flex-col items-start px-6 py-10 md:py-14">
+        <div className="relative mx-auto flex max-w-6xl flex-col items-center px-6 py-10 text-center md:py-14">
           <h1 className="max-w-2xl text-3xl leading-[1.1] font-[var(--font-display)] font-bold tracking-tight md:text-6xl">
-            Sell your old clothing fast or give it away.
+            Give away your old clothes or sell it fast
           </h1>
 
           <div className="mt-6 w-full max-w-xl">
             <HomeSearchBar />
           </div>
 
-          <div className="mt-4 flex w-full gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mt-4 flex w-full justify-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {QUICK_FILTERS.map((filter) => (
               <Link
                 key={filter.label}
