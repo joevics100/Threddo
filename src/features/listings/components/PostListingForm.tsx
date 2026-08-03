@@ -34,6 +34,7 @@ import {
   MAX_LISTING_IMAGES,
   SUITABLE_FOR_OPTIONS
 } from "@/features/listings/constants/listing-options";
+import { compressListingImage } from "@/features/listings/lib/compress-image";
 import { uploadListingImages } from "@/features/listings/lib/upload-listing-images";
 import {
   listingFormSchema,
@@ -98,6 +99,7 @@ export function PostListingForm({
   );
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [previewValues, setPreviewValues] = useState<ListingFormInput | null>(null);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
 
@@ -187,34 +189,40 @@ export function PostListingForm({
   }
 
   // ── Photos ──────────────────────────────────────────────────────────────
-  function handleImagesSelected(fileList: FileList | null) {
+  async function handleImagesSelected(fileList: FileList | null) {
     if (!fileList) return;
     setImageError(null);
 
     const incoming = Array.from(fileList);
-    const combined: ImageItem[] = [
-      ...images,
-      ...incoming.map(
+
+    if (images.length + incoming.length > MAX_LISTING_IMAGES) {
+      setImageError(`You can add up to ${MAX_LISTING_IMAGES} photos.`);
+      return;
+    }
+
+    setIsCompressing(true);
+    // Phone photos are routinely 3-8MB — compress before the size check
+    // instead of rejecting them outright, so people don't have to go
+    // find a photo editor just to post a listing.
+    const compressed = await Promise.all(incoming.map(compressListingImage));
+    setIsCompressing(false);
+
+    const tooLarge = compressed.find((file) => file.size > MAX_IMAGE_SIZE_BYTES);
+    if (tooLarge) {
+      setImageError(`${tooLarge.name} is still too large even after compression.`);
+      return;
+    }
+
+    setImages((prev) => [
+      ...prev,
+      ...compressed.map(
         (file): ImageItem => ({
           kind: "new",
           file,
           previewUrl: URL.createObjectURL(file)
         })
       )
-    ];
-
-    if (combined.length > MAX_LISTING_IMAGES) {
-      setImageError(`You can add up to ${MAX_LISTING_IMAGES} photos.`);
-      return;
-    }
-
-    const tooLarge = incoming.find((file) => file.size > MAX_IMAGE_SIZE_BYTES);
-    if (tooLarge) {
-      setImageError(`${tooLarge.name} is over 5MB. Choose a smaller photo.`);
-      return;
-    }
-
-    setImages(combined);
+    ]);
   }
 
   function removeImage(index: number) {
@@ -293,7 +301,7 @@ export function PostListingForm({
     });
   }
 
-  const isSubmitting = isPending || isUploading;
+  const isSubmitting = isPending || isUploading || isCompressing;
 
   return (
     <Form {...form}>
@@ -320,6 +328,9 @@ export function PostListingForm({
           <label className="text-sm font-medium">
             Photos <span className="text-muted-foreground">(up to {MAX_LISTING_IMAGES})</span>
           </label>
+          <p className="-mt-1 text-xs text-muted-foreground">
+            Straight from your phone is fine — we&apos;ll compress large photos automatically.
+          </p>
 
           <div className="flex flex-wrap gap-3">
             {images.map((item, index) => (
@@ -383,18 +394,30 @@ export function PostListingForm({
             ))}
 
             {images.length < MAX_LISTING_IMAGES ? (
-              <label className="flex size-24 cursor-pointer items-center justify-center rounded-lg border border-dashed text-xs text-muted-foreground hover:bg-accent">
-                + Add photo
+              <label
+                className={`flex size-24 items-center justify-center rounded-lg border border-dashed text-xs text-muted-foreground ${
+                  isCompressing ? "cursor-wait opacity-60" : "cursor-pointer hover:bg-accent"
+                }`}
+              >
+                {isCompressing ? "Compressing…" : "+ Add photo"}
                 <input
                   type="file"
                   accept="image/*"
                   multiple
+                  disabled={isCompressing}
                   className="hidden"
-                  onChange={(e) => handleImagesSelected(e.target.files)}
+                  onChange={(e) => {
+                    void handleImagesSelected(e.target.files);
+                    // Allow re-selecting the same file later (e.g. after removing it).
+                    e.target.value = "";
+                  }}
                 />
               </label>
             ) : null}
           </div>
+          {isCompressing ? (
+            <p className="text-xs text-muted-foreground">Compressing your photos…</p>
+          ) : null}
           {images.length > 1 ? (
             <p className="text-xs text-muted-foreground">
               The first photo is your cover photo — tap the star on another photo to make it the
