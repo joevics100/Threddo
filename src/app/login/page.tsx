@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { siteConfig } from "@/config/site.config";
+
 import { Separator } from "@/ui";
 import { GoogleSignInButton, LoginForm } from "@/features/auth";
 
@@ -29,17 +31,25 @@ export default async function LoginPage({
           </p>
         ) : null}
 
-        <div className="mt-6">
-          <GoogleSignInButton redirectTo={next} />
-        </div>
+        {siteConfig.googleSignInEnabled ? (
+          <>
+            <div className="mt-6">
+              <GoogleSignInButton redirectTo={next} />
+            </div>
 
-        <div className="my-6 flex items-center gap-3">
-          <Separator className="flex-1" />
-          <span className="text-xs text-black/40 uppercase">or</span>
-          <Separator className="flex-1" />
-        </div>
+            <div className="my-6 flex items-center gap-3">
+              <Separator className="flex-1" />
+              <span className="text-xs text-black/40 uppercase">or</span>
+              <Separator className="flex-1" />
+            </div>
 
-        <LoginForm redirectTo={next} />
+            <LoginForm redirectTo={next} />
+          </>
+        ) : (
+          <div className="mt-6">
+            <LoginForm redirectTo={next} />
+          </div>
+        )}
       </div>
     </main>
   );
