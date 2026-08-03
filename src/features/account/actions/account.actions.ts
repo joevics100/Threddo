@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 
-import { profileSchema, type ProfileInput } from "@/features/account/schemas/account.schemas";
+import {
+  phoneOnlySchema,
+  profileSchema,
+  type PhoneOnlyInput,
+  type ProfileInput
+} from "@/features/account/schemas/account.schemas";
 
 export interface UpdateProfileResult {
   error?: string;
@@ -42,5 +47,40 @@ export async function updateProfileAction(values: ProfileInput): Promise<UpdateP
 
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+  return { success: true };
+}
+
+/**
+ * Saves just the phone number — used by the "complete your profile" step
+ * shown right after a Google sign-in, since Google never provides one but
+ * every Threddo account needs one (it's the default listing contact number).
+ */
+export async function completePhoneOnboardingAction(
+  values: PhoneOnlyInput
+): Promise<UpdateProfileResult> {
+  const parsed = phoneOnlySchema.safeParse(values);
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Enter a valid phone number." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Your session has expired — please log in again." };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ phone: parsed.data.phone, whatsapp_number: parsed.data.phone })
+    .eq("id", user.id);
+
+  if (error) {
+    return { error: "Couldn't save your phone number. Please try again." };
+  }
+
   return { success: true };
 }

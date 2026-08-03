@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { siteConfig } from "@/config/site.config";
+
 import { Separator } from "@/ui";
 import { GoogleSignInButton, SignupForm } from "@/features/auth";
 
@@ -19,17 +21,25 @@ export default function SignupPage() {
           It&apos;s free to join and post your first item.
         </p>
 
-        <div className="mt-6">
-          <GoogleSignInButton />
-        </div>
+        {siteConfig.googleSignInEnabled ? (
+          <>
+            <div className="mt-6">
+              <GoogleSignInButton />
+            </div>
 
-        <div className="my-6 flex items-center gap-3">
-          <Separator className="flex-1" />
-          <span className="text-xs text-black/40 uppercase">or</span>
-          <Separator className="flex-1" />
-        </div>
+            <div className="my-6 flex items-center gap-3">
+              <Separator className="flex-1" />
+              <span className="text-xs text-black/40 uppercase">or</span>
+              <Separator className="flex-1" />
+            </div>
 
-        <SignupForm />
+            <SignupForm />
+          </>
+        ) : (
+          <div className="mt-6">
+            <SignupForm />
+          </div>
+        )}
       </div>
     </main>
   );
