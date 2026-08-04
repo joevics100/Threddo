@@ -57,11 +57,18 @@ function TabLink({ item, active }: { item: (typeof NAV_ITEMS)[number]; active: b
     <Link
       href={item.href}
       className={cn(
-        "flex flex-col items-center gap-0.5 px-3 py-1 text-[11px]",
-        active ? "font-semibold text-[#1B1F3B]" : "text-[#1B1F3B]/50"
+        "flex flex-col items-center gap-0.5 px-3 py-1 text-[11px] transition-colors",
+        active ? "font-semibold text-[#1B1F3B]" : "font-normal text-black/40"
       )}
     >
-      <Icon className="size-5" />
+      <span
+        className={cn(
+          "flex size-8 items-center justify-center rounded-full transition-colors",
+          active && "bg-[#E8A33D]/20"
+        )}
+      >
+        <Icon className="size-5" strokeWidth={active ? 2.5 : 2} />
+      </span>
       {item.label}
     </Link>
   );
