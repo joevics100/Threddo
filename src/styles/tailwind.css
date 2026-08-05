@@ -116,6 +116,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body {
+    /* Belt-and-suspenders against any element accidentally overflowing the
+       viewport width — some mobile browsers still allow horizontal pan
+       based on the <html> root even when only <body> sets overflow-x. */
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background text-foreground;
   }
