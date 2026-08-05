@@ -64,13 +64,16 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
       ) : null}
 
       {listings && listings.length > 0 ? (
-        <div className="mt-6 grid gap-3">
+        <div className="mt-6 grid min-w-0 gap-3">
           {listings.map((listing) => (
             <div
               key={listing.id}
-              className="grid gap-3 rounded-xl border border-black/5 bg-white p-4"
+              className="grid min-w-0 gap-3 rounded-xl border border-black/5 bg-white p-4"
             >
-              <Link href={`/listings/${listing.id}`} className="flex items-center gap-4">
+              <Link
+                href={`/listings/${listing.id}`}
+                className="flex w-full min-w-0 items-center gap-4"
+              >
                 <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-black/5">
                   {listing.images?.[0] ? (
                     <Image
