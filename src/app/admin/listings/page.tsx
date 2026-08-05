@@ -68,7 +68,9 @@ export default async function AdminListingsPage({ searchParams }: AdminListingsP
 
       <div className="mt-6 grid gap-3">
         {rows.length > 0 ? (
-          rows.map((listing) => <ListingModerationRow key={listing.id} listing={listing} />)
+          rows.map((listing) => (
+            <ListingModerationRow key={listing.id} listing={listing} status={status} />
+          ))
         ) : (
           <p className="text-sm text-black/50">No {status} listings.</p>
         )}

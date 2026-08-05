@@ -25,7 +25,7 @@ const GUIDELINES = [
   },
   {
     title: "Use Escrow for higher-value items",
-    body: "The \u201cTrade safely\u201d button on any listing walks you through Threddo Escrow: admin holds the buyer's payment in a shared WhatsApp group until the buyer confirms the item has arrived as described, then releases the funds to the seller."
+    body: "The \u201cTrade with Escrow\u201d button on any listing walks you through Threddo Escrow: admin holds the buyer's payment in a shared WhatsApp group until the buyer confirms the item has arrived as described, then releases the funds to the seller (minus a 5% fee)."
   },
   {
     title: "Check seller reviews",

@@ -265,9 +265,7 @@ export function PostListingForm({
     });
   }
 
-  // ── AI photo analysis (opt-in, create mode only) ───────────────────────
-  const analyzedFileRef = useRef<File | null>(null);
-
+  // ── AI photo analysis (create mode only, manually triggered) ───────────
   async function analyzeFirstPhoto(file: File) {
     setIsAnalyzing(true);
     try {
@@ -309,18 +307,6 @@ export function PostListingForm({
       setIsAnalyzing(false);
     }
   }
-
-  // Auto-runs once per newly-added first photo (create mode only — in edit
-  // mode the fields already have real values, no need to touch them).
-  useEffect(() => {
-    if (isEdit) return;
-    const first = images[0];
-    if (!first || first.kind !== "new") return;
-    if (analyzedFileRef.current === first.file) return;
-    analyzedFileRef.current = first.file;
-    void analyzeFirstPhoto(first.file);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [images, isEdit]);
 
   // ── Preview + submit ────────────────────────────────────────────────────
   function openPreview(values: ListingFormInput) {
@@ -501,10 +487,24 @@ export function PostListingForm({
           {images.length > 1 ? (
             <p className="text-xs text-muted-foreground">
               The first photo is your cover photo — tap the star on another photo to make it the
-              cover, or use the arrows to reorder.
+              cover, or use the arrows to reorder. &ldquo;Fill with AI&rdquo; below only looks at
+              the cover photo, so arrange your photos first.
             </p>
           ) : null}
           {imageError ? <p className="text-sm text-destructive">{imageError}</p> : null}
+          {!isEdit && images[0]?.kind === "new" ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isAnalyzing}
+              onClick={() => images[0]?.kind === "new" && void analyzeFirstPhoto(images[0].file)}
+              className="w-fit gap-1.5 border-[#E8A33D]/40 text-[#1B1F3B] hover:bg-[#E8A33D]/10"
+            >
+              <Sparkles className="size-3.5 text-[#E8A33D]" />
+              {isAnalyzing ? "Analyzing…" : "Fill with AI"}
+            </Button>
+          ) : null}
         </div>
 
         <FormField

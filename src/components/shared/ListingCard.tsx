@@ -60,7 +60,7 @@ export function ListingCard({
       <div className="p-4">
         <span
           className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase ${
-            isFree ? "bg-[#1B1F3B]/10 text-[#1B1F3B]" : "bg-[#E8543D]/10 text-[#E8543D]"
+            isFree ? "bg-emerald-500/10 text-emerald-600" : "bg-[#E8543D]/10 text-[#E8543D]"
           }`}
         >
           {isFree ? "Donation" : "For sale"}

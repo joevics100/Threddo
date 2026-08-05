@@ -28,7 +28,13 @@ export interface ModerationListing {
   rejection_reason?: string | null;
 }
 
-export function ListingModerationRow({ listing }: { listing: ModerationListing }) {
+export function ListingModerationRow({
+  listing,
+  status
+}: {
+  listing: ModerationListing;
+  status: "pending" | "approved" | "rejected";
+}) {
   const [isPending, startTransition] = useTransition();
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [reason, setReason] = useState("");
@@ -117,23 +123,27 @@ export function ListingModerationRow({ listing }: { listing: ModerationListing }
           </div>
         ) : (
           <div className="mt-3 flex gap-2">
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleApprove}
-              disabled={isPending}
-              className="bg-[#1B1F3B] text-white hover:bg-[#2a2f5a]"
-            >
-              Approve
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => setShowRejectInput(true)}
-            >
-              Reject
-            </Button>
+            {status !== "approved" ? (
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleApprove}
+                disabled={isPending}
+                className="bg-[#1B1F3B] text-white hover:bg-[#2a2f5a]"
+              >
+                Approve
+              </Button>
+            ) : null}
+            {status !== "rejected" ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setShowRejectInput(true)}
+              >
+                Reject
+              </Button>
+            ) : null}
           </div>
         )}
       </div>
