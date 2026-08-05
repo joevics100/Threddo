@@ -67,7 +67,7 @@ export const Header = async () => {
                 Log in
               </Link>
               <Button asChild size="sm" className="bg-[#E8A33D] text-[#1B1F3B] hover:bg-[#f0b563]">
-                <Link href="/signup">Sign up</Link>
+                <Link href="/signup">Sign up / Sign in</Link>
               </Button>
             </>
           )}

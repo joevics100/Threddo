@@ -63,7 +63,11 @@ export function ReportListingDialog({ listingId }: ReportListingDialogProps) {
       }}
     >
       <DialogTrigger asChild>
-        <Button type="button" variant="outline" size="sm">
+        <Button
+          type="button"
+          size="sm"
+          className="bg-destructive text-white hover:bg-destructive/90"
+        >
           Report listing
         </Button>
       </DialogTrigger>

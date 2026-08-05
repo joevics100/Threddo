@@ -194,7 +194,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
               <span
                 className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase ${
                   listing.is_free
-                    ? "bg-[#1B1F3B]/10 text-[#1B1F3B]"
+                    ? "bg-emerald-500/10 text-emerald-600"
                     : "bg-[#E8543D]/10 text-[#E8543D]"
                 }`}
               >
@@ -289,23 +289,23 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
             />
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-4 flex gap-3">
             {whatsappLink ? (
               <a
                 href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg bg-[#25D366] px-6 py-3 font-semibold text-white transition hover:opacity-90"
+                className="flex-1 rounded-lg bg-[#25D366] px-6 py-3 text-center font-semibold text-white transition hover:opacity-90"
               >
-                Chat on WhatsApp
+                WhatsApp
               </a>
             ) : null}
             {listing.allow_calls && sellerNumber ? (
               <a
                 href={`tel:${sellerNumber}`}
-                className="rounded-lg border border-[#1B1F3B]/20 px-6 py-3 font-semibold text-[#1B1F3B] transition hover:bg-[#1B1F3B]/5"
+                className="flex-1 rounded-lg border border-[#1B1F3B]/20 px-6 py-3 text-center font-semibold text-[#1B1F3B] transition hover:bg-[#1B1F3B]/5"
               >
-                Call seller
+                Call
               </a>
             ) : null}
           </div>

@@ -29,7 +29,7 @@ export function EscrowDialog() {
     <Dialog>
       <DialogTrigger asChild>
         <Button type="button" variant="outline" size="sm">
-          Trade safely
+          Trade with Escrow
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -37,7 +37,8 @@ export function EscrowDialog() {
           <DialogTitle>Threddo Escrow</DialogTitle>
           <DialogDescription>
             For extra peace of mind on higher-value items, Threddo admin can hold payment until
-            you&apos;ve confirmed the item is as described.
+            you&apos;ve confirmed the item is as described. A 5% fee applies, deducted from the
+            amount released to the seller.
           </DialogDescription>
         </DialogHeader>
 
@@ -46,6 +47,11 @@ export function EscrowDialog() {
             <li key={step}>{step}</li>
           ))}
         </ol>
+
+        <p className="rounded-lg bg-[#E8A33D]/10 px-3 py-2 text-xs text-[#1B1F3B]">
+          Escrow fee: <span className="font-semibold">5% of the item price</span>, covered by the
+          seller from the released funds.
+        </p>
 
         <DialogFooter>
           {hasSupportNumber ? (
