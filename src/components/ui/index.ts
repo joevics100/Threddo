@@ -14,5 +14,6 @@ export * from "./segmented-control";
 export * from "./select";
 export * from "./separator";
 export * from "./sonner";
+export * from "./switch";
 export * from "./table";
 export * from "./tooltip";

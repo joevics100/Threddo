@@ -17,7 +17,13 @@ export const env = createEnv({
     R2_BUCKET_NAME: z.string().min(1),
     // Public base URL images are served from — either the bucket's r2.dev
     // subdomain or a custom domain connected to the bucket in Cloudflare.
-    R2_PUBLIC_URL: z.string().url()
+    R2_PUBLIC_URL: z.string().url(),
+    // Optional: AI listing-assist (image analysis) degrades gracefully if
+    // none of these are set, rather than failing the build. Multiple keys
+    // let a request rotate to the next one if one hits a rate limit.
+    GEMINI_API_KEY_1: z.string().min(1).optional(),
+    GEMINI_API_KEY_2: z.string().min(1).optional(),
+    GEMINI_API_KEY_3: z.string().min(1).optional()
   },
   runtimeEnv: {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
@@ -29,6 +35,9 @@ export const env = createEnv({
     R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
     R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
     R2_BUCKET_NAME: process.env.R2_BUCKET_NAME,
-    R2_PUBLIC_URL: process.env.R2_PUBLIC_URL
+    R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
+    GEMINI_API_KEY_1: process.env.GEMINI_API_KEY_1,
+    GEMINI_API_KEY_2: process.env.GEMINI_API_KEY_2,
+    GEMINI_API_KEY_3: process.env.GEMINI_API_KEY_3
   }
 });

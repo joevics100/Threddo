@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 
-import { ChevronLeft, ChevronRight, Star, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, Star, X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { CategorySelect, LocationSelect, type CategoryOption } from "@/components/shared";
 import {
@@ -19,8 +20,10 @@ import {
   FormMessage,
   Input,
   NairaInput,
-  SegmentedControl
+  SegmentedControl,
+  Switch
 } from "@/ui";
+import { analyzeListingImageAction } from "@/features/listings/actions/ai-assist.actions";
 import {
   createListingAction,
   updateListingAction
@@ -57,6 +60,19 @@ type ImageItem =
   | { kind: "new"; file: File; previewUrl: string };
 
 const DRAFT_STORAGE_KEY = "threddo:draft-listing";
+
+/** Reads a File as base64 (no data-URL prefix) for sending to the Gemini analysis action. */
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result.slice(result.indexOf(",") + 1));
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
 
 const DEFAULT_VALUES = (defaultWhatsappNumber: string): ListingFormInput => ({
   title: "",
@@ -100,6 +116,8 @@ export function PostListingForm({
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [aiAssistEnabled, setAiAssistEnabled] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [previewValues, setPreviewValues] = useState<ListingFormInput | null>(null);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
 
@@ -248,6 +266,64 @@ export function PostListingForm({
       return next;
     });
   }
+
+  // ── AI photo analysis (opt-in, create mode only) ───────────────────────
+  const analyzedFileRef = useRef<File | null>(null);
+
+  async function analyzeFirstPhoto(file: File) {
+    setIsAnalyzing(true);
+    try {
+      const base64 = await fileToBase64(file);
+      const result = await analyzeListingImageAction(base64, file.type, categories);
+
+      if (result.error || !result.suggestion) {
+        toast.error(result.error ?? "Couldn't analyze this photo.");
+        return;
+      }
+
+      const s = result.suggestion;
+      if (s.title) form.setValue("title", s.title, { shouldValidate: true });
+      if (s.description) form.setValue("description", s.description, { shouldValidate: true });
+
+      if (s.categorySlug) {
+        const category = categories.find((c) => c.slug === s.categorySlug && !c.parent_id);
+        if (category) {
+          form.setValue("categoryId", category.id, { shouldValidate: true });
+          const subcategory = s.subcategorySlug
+            ? categories.find((c) => c.slug === s.subcategorySlug && c.parent_id === category.id)
+            : undefined;
+          form.setValue("subcategoryId", subcategory?.id ?? null);
+        }
+      }
+
+      if (s.brand) form.setValue("brand", s.brand);
+      if (s.color) form.setValue("color", s.color);
+      if (s.material) form.setValue("material", s.material);
+      form.setValue("condition", s.condition, { shouldValidate: true });
+      form.setValue("suitableFor", s.suitableFor, { shouldValidate: true });
+
+      toast.success(
+        "Filled in details from your photo — have a look and edit anything that's off."
+      );
+    } catch {
+      toast.error("Couldn't analyze this photo right now.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }
+
+  // Auto-runs once per newly-added first photo, but only while the toggle
+  // is on — never on by default, and never in edit mode (fields already
+  // have real values there).
+  useEffect(() => {
+    if (!aiAssistEnabled || isEdit) return;
+    const first = images[0];
+    if (!first || first.kind !== "new") return;
+    if (analyzedFileRef.current === first.file) return;
+    analyzedFileRef.current = first.file;
+    void analyzeFirstPhoto(first.file);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiAssistEnabled, images, isEdit]);
 
   // ── Preview + submit ────────────────────────────────────────────────────
   function openPreview(values: ListingFormInput) {
@@ -426,6 +502,43 @@ export function PostListingForm({
           ) : null}
           {imageError ? <p className="text-sm text-destructive">{imageError}</p> : null}
         </div>
+
+        {!isEdit ? (
+          <div className="flex items-start gap-3 rounded-lg border border-[#E8A33D]/30 bg-[#E8A33D]/5 p-4">
+            <Switch
+              id="aiAssist"
+              checked={aiAssistEnabled}
+              onCheckedChange={setAiAssistEnabled}
+              disabled={isAnalyzing}
+              className="mt-0.5"
+            />
+            <div className="flex-1">
+              <label
+                htmlFor="aiAssist"
+                className="flex items-center gap-1.5 text-sm font-medium text-[#1B1F3B]"
+              >
+                <Sparkles className="size-4 text-[#E8A33D]" />
+                Fill with AI
+              </label>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {isAnalyzing
+                  ? "Analyzing your first photo…"
+                  : "Looks at your first photo and suggests a title, description, category, and more — you can edit everything after."}
+              </p>
+              {aiAssistEnabled && !isAnalyzing && images[0]?.kind === "new" ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    images[0]?.kind === "new" && void analyzeFirstPhoto(images[0].file)
+                  }
+                  className="mt-1.5 text-xs font-semibold text-[#E8543D] hover:underline"
+                >
+                  Re-analyze photo
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         <FormField
           control={form.control}
