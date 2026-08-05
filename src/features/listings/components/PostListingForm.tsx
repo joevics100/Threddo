@@ -20,8 +20,7 @@ import {
   FormMessage,
   Input,
   NairaInput,
-  SegmentedControl,
-  Switch
+  SegmentedControl
 } from "@/ui";
 import { analyzeListingImageAction } from "@/features/listings/actions/ai-assist.actions";
 import {
@@ -116,7 +115,6 @@ export function PostListingForm({
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
-  const [aiAssistEnabled, setAiAssistEnabled] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [previewValues, setPreviewValues] = useState<ListingFormInput | null>(null);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
@@ -277,7 +275,7 @@ export function PostListingForm({
       const result = await analyzeListingImageAction(base64, file.type, categories);
 
       if (result.error || !result.suggestion) {
-        toast.error(result.error ?? "Couldn't analyze this photo.");
+        toast.error(result.error ?? "AI parsing didn't work — please fill out the form.");
         return;
       }
 
@@ -306,24 +304,23 @@ export function PostListingForm({
         "Filled in details from your photo — have a look and edit anything that's off."
       );
     } catch {
-      toast.error("Couldn't analyze this photo right now.");
+      toast.error("AI parsing didn't work — please fill out the form.");
     } finally {
       setIsAnalyzing(false);
     }
   }
 
-  // Auto-runs once per newly-added first photo, but only while the toggle
-  // is on — never on by default, and never in edit mode (fields already
-  // have real values there).
+  // Auto-runs once per newly-added first photo (create mode only — in edit
+  // mode the fields already have real values, no need to touch them).
   useEffect(() => {
-    if (!aiAssistEnabled || isEdit) return;
+    if (isEdit) return;
     const first = images[0];
     if (!first || first.kind !== "new") return;
     if (analyzedFileRef.current === first.file) return;
     analyzedFileRef.current = first.file;
     void analyzeFirstPhoto(first.file);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [aiAssistEnabled, images, isEdit]);
+  }, [images, isEdit]);
 
   // ── Preview + submit ────────────────────────────────────────────────────
   function openPreview(values: ListingFormInput) {
@@ -501,44 +498,25 @@ export function PostListingForm({
             </p>
           ) : null}
           {imageError ? <p className="text-sm text-destructive">{imageError}</p> : null}
-        </div>
-
-        {!isEdit ? (
-          <div className="flex items-start gap-3 rounded-lg border border-[#E8A33D]/30 bg-[#E8A33D]/5 p-4">
-            <Switch
-              id="aiAssist"
-              checked={aiAssistEnabled}
-              onCheckedChange={setAiAssistEnabled}
-              disabled={isAnalyzing}
-              className="mt-0.5"
-            />
-            <div className="flex-1">
-              <label
-                htmlFor="aiAssist"
-                className="flex items-center gap-1.5 text-sm font-medium text-[#1B1F3B]"
-              >
-                <Sparkles className="size-4 text-[#E8A33D]" />
-                Fill with AI
-              </label>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {isAnalyzing
-                  ? "Analyzing your first photo…"
-                  : "Looks at your first photo and suggests a title, description, category, and more — you can edit everything after."}
-              </p>
-              {aiAssistEnabled && !isAnalyzing && images[0]?.kind === "new" ? (
+          {!isEdit && images[0]?.kind === "new" ? (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Sparkles className="size-3.5 text-[#E8A33D]" />
+              {isAnalyzing ? (
+                "Filling in details from your photo…"
+              ) : (
                 <button
                   type="button"
                   onClick={() =>
                     images[0]?.kind === "new" && void analyzeFirstPhoto(images[0].file)
                   }
-                  className="mt-1.5 text-xs font-semibold text-[#E8543D] hover:underline"
+                  className="font-semibold text-[#E8543D] hover:underline"
                 >
                   Re-analyze photo
                 </button>
-              ) : null}
+              )}
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
 
         <FormField
           control={form.control}

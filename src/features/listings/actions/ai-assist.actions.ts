@@ -8,6 +8,12 @@ export interface AnalyzeListingImageResult {
   error?: string;
 }
 
+// Shown to sellers regardless of what actually went wrong (missing API key,
+// rate limit, model error, malformed response, etc.) — none of that is
+// useful or reassuring to a seller, they just need to know to fill it in
+// themselves. The real reason is still logged server-side below.
+const GENERIC_ERROR = "AI parsing didn't work — please fill out the form.";
+
 export async function analyzeListingImageAction(
   base64Image: string,
   mimeType: string,
@@ -26,18 +32,14 @@ export async function analyzeListingImageAction(
   // ceiling against something unexpected slipping through client-side.
   const approxBytes = (base64Image.length * 3) / 4;
   if (approxBytes > 2 * 1024 * 1024) {
-    return { error: "That photo is too large to analyze." };
+    return { error: GENERIC_ERROR };
   }
 
   try {
     const suggestion = await analyzeListingImage(base64Image, mimeType, categories);
     return { suggestion };
   } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Couldn't analyze this photo right now. You can still fill in the details yourself."
-    };
+    console.error("AI listing analysis failed:", error);
+    return { error: GENERIC_ERROR };
   }
 }
