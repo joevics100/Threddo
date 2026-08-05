@@ -106,7 +106,7 @@ export default async function HomePage() {
             <HomeSearchBar />
           </div>
 
-          <div className="mt-4 flex w-full justify-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mt-4 flex w-full gap-2 overflow-x-auto px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {QUICK_FILTERS.map((filter) => (
               <Link
                 key={filter.label}

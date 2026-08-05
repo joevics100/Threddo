@@ -68,9 +68,9 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
           {listings.map((listing) => (
             <div
               key={listing.id}
-              className="flex flex-col gap-3 rounded-xl border border-black/5 bg-white p-4 sm:flex-row sm:items-center"
+              className="grid gap-3 rounded-xl border border-black/5 bg-white p-4"
             >
-              <Link href={`/listings/${listing.id}`} className="flex flex-1 items-center gap-4">
+              <Link href={`/listings/${listing.id}`} className="flex items-center gap-4">
                 <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-black/5">
                   {listing.images?.[0] ? (
                     <Image
@@ -92,16 +92,17 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
                     </p>
                   ) : null}
                 </div>
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
-                    STATUS_STYLES[listing.status] ?? "bg-black/5 text-black/60"
-                  }`}
-                >
-                  {listing.status}
-                </span>
               </Link>
 
-              <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
+              <span
+                className={`w-fit rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
+                  STATUS_STYLES[listing.status] ?? "bg-black/5 text-black/60"
+                }`}
+              >
+                {listing.status}
+              </span>
+
+              <div className="flex items-center gap-2">
                 <Link
                   href={`/listings/${listing.id}/edit`}
                   className="flex items-center gap-1.5 rounded-lg border border-black/10 px-3 py-1.5 text-xs font-semibold text-[#1B1F3B] transition hover:bg-black/5"
