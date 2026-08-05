@@ -396,6 +396,13 @@ export function PostListingForm({
       ) : null}
 
       <form onSubmit={form.handleSubmit(openPreview)} className="grid gap-8">
+        {isAnalyzing ? (
+          <div className="sticky top-2 z-10 flex items-center justify-center gap-2 rounded-full bg-[#1B1F3B] px-4 py-2 text-sm font-medium text-white shadow-md">
+            <Sparkles className="size-4 animate-pulse text-[#E8A33D]" />
+            <span className="animate-pulse">Filling form with AI…</span>
+          </div>
+        ) : null}
+
         {/* Photos */}
         <div className="grid gap-2">
           <label className="text-sm font-medium">
@@ -498,24 +505,6 @@ export function PostListingForm({
             </p>
           ) : null}
           {imageError ? <p className="text-sm text-destructive">{imageError}</p> : null}
-          {!isEdit && images[0]?.kind === "new" ? (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Sparkles className="size-3.5 text-[#E8A33D]" />
-              {isAnalyzing ? (
-                "Filling in details from your photo…"
-              ) : (
-                <button
-                  type="button"
-                  onClick={() =>
-                    images[0]?.kind === "new" && void analyzeFirstPhoto(images[0].file)
-                  }
-                  className="font-semibold text-[#E8543D] hover:underline"
-                >
-                  Re-analyze photo
-                </button>
-              )}
-            </div>
-          ) : null}
         </div>
 
         <FormField
@@ -618,7 +607,7 @@ export function PostListingForm({
               <FormControl>
                 <textarea
                   {...field}
-                  rows={4}
+                  rows={6}
                   placeholder="Describe the item — fit, any flaws, why you're letting it go"
                   className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30"
                 />

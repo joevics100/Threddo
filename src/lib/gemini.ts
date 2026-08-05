@@ -68,7 +68,7 @@ Look at the photo and identify the single most prominent item for sale. Respond 
 
 {
   "title": "short, specific title, max 8 words, e.g. 'Blue Denim Jacket' or 'Nike Air Max Sneakers'",
-  "description": "2-3 plain, honest sentences describing what's visible — item type, color, style, and any notable visible features. Do NOT claim a condition like 'brand new' or 'excellent condition' unless clearly evidenced (e.g. tags still attached, obvious packaging) — the seller will confirm the actual condition separately.",
+  "description": "A detailed, honest description, roughly 5-8 sentences (about 120-180 words). Cover: what the item is, its color and pattern, style/silhouette and fit, material or texture if visible, any notable design details (buttons, zippers, prints, stitching, hardware, logos), and a couple of ideas for how it could be worn or styled. Write in a natural, appealing tone a buyer would enjoy reading — not a dry bullet list. Do NOT claim a condition like 'brand new' or 'excellent condition' unless clearly evidenced (e.g. tags still attached, obvious packaging) — the seller will confirm the actual condition separately.",
   "categorySlug": "the closest matching slug from the list below, or omit if genuinely unclear",
   "subcategorySlug": "the closest matching subcategory slug under that category, or omit if unclear",
   "brand": "brand name only if a logo or label is clearly legible in the photo, otherwise omit",
