@@ -153,7 +153,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   const whatsappLink = sellerNumber
     ? buildWhatsAppLink(
         sellerNumber,
-        `Hi, I'm interested in your listing "${listing.title}" on Threddo.`
+        `Hi, I'm interested in your listing "${listing.title}" on Threddo: ${absoluteUrl(`/listings/${listing.id}`)}`
       )
     : null;
 
