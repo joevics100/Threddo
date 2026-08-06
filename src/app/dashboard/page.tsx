@@ -4,9 +4,11 @@ import { redirect } from "next/navigation";
 import {
   BadgeCheck,
   Bookmark,
+  BookOpen,
   FileText,
   HelpCircle,
   LogOut,
+  Newspaper,
   Package,
   ShieldCheck,
   Star,
@@ -46,7 +48,7 @@ export default async function ProfilePage() {
   ] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, phone, whatsapp_number, avatar_url, is_verified, created_at")
+      .select("full_name, phone, whatsapp_number, avatar_url, is_verified, created_at, role")
       .eq("id", user.id)
       .single(),
     supabase.from("listings").select("id", { count: "exact", head: true }).eq("user_id", user.id),
@@ -134,6 +136,10 @@ export default async function ProfilePage() {
 
       {/* Support */}
       <SettingsSection title="Support">
+        <SettingsRow icon={BookOpen} title="Blog" href="/blog" />
+        {profile?.role === "admin" ? (
+          <SettingsRow icon={Newspaper} title="Manage Blog" href="/admin/blog" />
+        ) : null}
         <SettingsRow icon={ShieldCheck} title="Safety tips" href="/safety" />
         <SettingsRow icon={FileText} title="Privacy Policy" href="/privacy" />
         <SettingsRow icon={HelpCircle} title="Terms of Service" href="/terms" />
