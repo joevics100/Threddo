@@ -84,11 +84,14 @@ export default async function HomePage() {
       />
       {/* Hero */}
       <section
-        className="relative overflow-hidden bg-[#1B1F3B] bg-cover bg-center text-white"
+        className="relative overflow-hidden bg-[#1B1F3B] bg-cover bg-[center_top_15%] text-white"
         style={{ backgroundImage: "url(/hero.jpg)" }}
       >
-        {/* Dark overlay so text stays readable once a photo is added at /public/hero.jpg */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[#1B1F3B]/80" />
+        {/* Gradient overlay so text/search bar stay readable against the bright photo */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1B1F3B]/75 via-[#1B1F3B]/55 to-[#1B1F3B]/90"
+        />
         <div
           aria-hidden
           className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#E8A33D] opacity-20 blur-3xl"
@@ -106,7 +109,7 @@ export default async function HomePage() {
             <HomeSearchBar />
           </div>
 
-          <div className="mt-4 flex w-full gap-2 overflow-x-auto px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mt-4 flex w-full [scrollbar-width:none] gap-2 overflow-x-auto px-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {QUICK_FILTERS.map((filter) => (
               <Link
                 key={filter.label}

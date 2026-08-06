@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
@@ -23,8 +24,9 @@ export const Header = async () => {
   return (
     <header className="bg-[#1B1F3B]">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-xl font-[var(--font-display)] font-bold text-white">
-          Threddo
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/logo-light.png" alt="Threddo" width={32} height={36} priority />
+          <span className="text-xl font-[var(--font-display)] font-bold text-white">Threddo</span>
         </Link>
 
         <nav className="flex items-center gap-4">
