@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 
 import { Button } from "@/ui";
 
+import { BackButton } from "./BackButton";
+
 export const Header = async () => {
   const supabase = await createClient();
   const {
@@ -73,6 +75,8 @@ export const Header = async () => {
               </Button>
             </>
           )}
+
+          <BackButton />
         </nav>
       </div>
     </header>

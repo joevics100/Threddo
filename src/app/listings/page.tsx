@@ -313,13 +313,21 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
                 condition={listing.condition}
                 state={listing.state}
                 lga={listing.lga}
-                imageUrl={listing.images?.[0]}
+                images={listing.images ?? []}
                 isSaved={user ? savedIds.has(listing.id) : undefined}
               />
             ))}
           </div>
         ) : (
-          <p className="text-black/60">No listings match these filters yet.</p>
+          <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-[#1B1F3B]/15 py-12 text-center">
+            <p className="text-black/60">No listings match these filters yet.</p>
+            <Link
+              href="/listings"
+              className="rounded-full bg-[#1B1F3B] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1B1F3B]/90"
+            >
+              Clear all filters
+            </Link>
+          </div>
         )}
 
         {totalPages > 1 ? (

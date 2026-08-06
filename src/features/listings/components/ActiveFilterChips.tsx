@@ -17,8 +17,10 @@ interface Chip {
 
 /**
  * Shows one removable pill per active filter (everything except category/
- * subcategory, which already has its own quick-pill row above this one) and
- * a "Filters" button that opens the dedicated /listings/filters page.
+ * subcategory, which already has its own quick-pill row above this one), a
+ * "Clear all" pill when anything (including category/subcategory) is
+ * active, and a "Filters" button that opens the dedicated /listings/filters
+ * page.
  */
 export function ActiveFilterChips() {
   const router = useRouter();
@@ -73,6 +75,8 @@ export function ActiveFilterChips() {
     chips.push({ key: "verifiedOnly", label: "Verified sellers" });
   }
 
+  const hasAnyFilters = Array.from(searchParams.keys()).length > 0;
+
   function removeChip(chip: Chip) {
     const params = new URLSearchParams(searchParams.toString());
     if (chip.key === "state") {
@@ -111,6 +115,17 @@ export function ActiveFilterChips() {
         <SlidersHorizontal className="size-3.5" />
         Filters
       </Link>
+
+      {hasAnyFilters ? (
+        <button
+          type="button"
+          onClick={() => router.push("/listings")}
+          className="flex items-center gap-1.5 rounded-full border border-[#E8543D]/30 bg-[#E8543D]/5 px-3 py-1.5 text-xs font-medium text-[#E8543D] hover:bg-[#E8543D]/10"
+        >
+          <X className="size-3.5" />
+          Clear all
+        </button>
+      ) : null}
     </div>
   );
 }

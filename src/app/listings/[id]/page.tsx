@@ -356,7 +356,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
                 condition={item.condition}
                 state={item.state}
                 lga={item.lga}
-                imageUrl={item.images?.[0]}
+                images={item.images ?? []}
               />
             ))}
           </div>

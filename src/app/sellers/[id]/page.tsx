@@ -93,7 +93,7 @@ export default async function SellerProfilePage({ params }: SellerProfilePagePro
                 condition={listing.condition}
                 state={listing.state}
                 lga={listing.lga}
-                imageUrl={listing.images?.[0]}
+                images={listing.images ?? []}
               />
             ))}
           </div>
