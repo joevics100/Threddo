@@ -84,14 +84,9 @@ export default async function HomePage() {
       />
       {/* Hero */}
       <section
-        className="relative overflow-hidden bg-[#1B1F3B] bg-cover bg-[center_top_15%] text-white"
+        className="relative overflow-hidden bg-[#1B1F3B] bg-cover bg-center text-white"
         style={{ backgroundImage: "url(/hero.jpg)" }}
       >
-        {/* Gradient overlay so text/search bar stay readable against the bright photo */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1B1F3B]/75 via-[#1B1F3B]/55 to-[#1B1F3B]/90"
-        />
         <div
           aria-hidden
           className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#E8A33D] opacity-20 blur-3xl"
@@ -101,7 +96,10 @@ export default async function HomePage() {
           className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-[#E8543D] opacity-10 blur-3xl"
         />
         <div className="relative mx-auto flex max-w-6xl flex-col items-center px-6 py-10 text-center md:py-14">
-          <h1 className="max-w-2xl text-3xl leading-[1.1] font-[var(--font-display)] font-bold tracking-tight md:text-6xl">
+          <h1
+            className="max-w-2xl text-3xl leading-[1.1] font-[var(--font-display)] font-bold tracking-tight md:text-6xl"
+            style={{ textShadow: "0 2px 16px rgba(0,0,0,0.65), 0 1px 3px rgba(0,0,0,0.8)" }}
+          >
             Give away your old clothes or sell it fast
           </h1>
 
@@ -114,7 +112,7 @@ export default async function HomePage() {
               <Link
                 key={filter.label}
                 href={filter.href}
-                className="shrink-0 rounded-full border border-white/25 bg-white/5 px-4 py-1.5 text-sm font-medium whitespace-nowrap text-white/85 transition hover:border-white/50 hover:bg-white/10"
+                className="shrink-0 rounded-full border border-white/40 bg-black/35 px-4 py-1.5 text-sm font-medium whitespace-nowrap text-white shadow-sm backdrop-blur-sm transition hover:border-white/60 hover:bg-black/50"
               >
                 {filter.label}
               </Link>
