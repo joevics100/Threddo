@@ -238,6 +238,65 @@ export interface Database {
           }
         ];
       };
+      blog_posts: {
+        Row: {
+          id: string;
+          title: string;
+          slug: string;
+          excerpt: string;
+          content: string;
+          cover_image_url: string | null;
+          tags: string[];
+          status: "draft" | "published";
+          seo_title: string | null;
+          seo_description: string | null;
+          author_id: string | null;
+          published_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          slug: string;
+          excerpt: string;
+          content: string;
+          cover_image_url?: string | null;
+          tags?: string[];
+          status?: "draft" | "published";
+          seo_title?: string | null;
+          seo_description?: string | null;
+          author_id?: string | null;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          slug?: string;
+          excerpt?: string;
+          content?: string;
+          cover_image_url?: string | null;
+          tags?: string[];
+          status?: "draft" | "published";
+          seo_title?: string | null;
+          seo_description?: string | null;
+          author_id?: string | null;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       reports: {
         Row: {
           id: string;

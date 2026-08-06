@@ -12,19 +12,25 @@ const MAX_LISTINGS_IN_SITEMAP = 5000;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
 
-  const [{ data: categories }, { data: listings }] = await Promise.all([
+  const [{ data: categories }, { data: listings }, { data: posts }] = await Promise.all([
     supabase.from("categories").select("id, slug, parent_id").order("name"),
     supabase
       .from("listings")
       .select("id, updated_at")
       .eq("status", "approved")
       .order("created_at", { ascending: false })
-      .limit(MAX_LISTINGS_IN_SITEMAP)
+      .limit(MAX_LISTINGS_IN_SITEMAP),
+    supabase
+      .from("blog_posts")
+      .select("slug, updated_at")
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${siteConfig.url}/`, changeFrequency: "daily", priority: 1 },
     { url: `${siteConfig.url}/listings`, changeFrequency: "hourly", priority: 0.9 },
+    { url: `${siteConfig.url}/blog`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${siteConfig.url}/about`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${siteConfig.url}/safety`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${siteConfig.url}/privacy`, changeFrequency: "yearly", priority: 0.2 },
@@ -52,5 +58,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...listingRoutes];
+  const blogRoutes: MetadataRoute.Sitemap = (posts ?? []).map((post) => ({
+    url: `${siteConfig.url}/blog/${post.slug}`,
+    lastModified: post.updated_at,
+    changeFrequency: "monthly",
+    priority: 0.5
+  }));
+
+  return [...staticRoutes, ...categoryRoutes, ...listingRoutes, ...blogRoutes];
 }
