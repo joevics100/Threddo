@@ -37,7 +37,7 @@ export function ListingImageGallery({ images, title }: ListingImageGalleryProps)
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex snap-x snap-mandatory overflow-x-auto rounded-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto rounded-xl [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
           {images.map((url, index) => (
             <button
