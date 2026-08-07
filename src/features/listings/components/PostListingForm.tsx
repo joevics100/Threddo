@@ -56,8 +56,7 @@ interface PostListingFormProps {
 
 /** One photo slot — either an already-uploaded URL or a freshly-picked file. */
 type ImageItem =
-  | { kind: "existing"; url: string }
-  | { kind: "new"; file: File; previewUrl: string };
+  { kind: "existing"; url: string } | { kind: "new"; file: File; previewUrl: string };
 
 const DRAFT_STORAGE_KEY = "threddo:draft-listing";
 
@@ -168,6 +167,10 @@ export function PostListingForm({
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (isEdit) return;
+    // react-hook-form's watch() returns a subscription function that the
+    // React Compiler can't safely memoize — this is expected and the
+    // compiler already handles it correctly by skipping memoization here.
+    // eslint-disable-next-line react-hooks/incompatible-library
     const subscription = form.watch((values) => {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
       draftTimerRef.current = setTimeout(() => {
@@ -244,13 +247,11 @@ export function PostListingForm({
 
     setImages((prev) => [
       ...prev,
-      ...compressed.map(
-        (file): ImageItem => ({
-          kind: "new",
-          file,
-          previewUrl: URL.createObjectURL(file)
-        })
-      )
+      ...compressed.map((file): ImageItem => ({
+        kind: "new",
+        file,
+        previewUrl: URL.createObjectURL(file)
+      }))
     ]);
   }
 
