@@ -8,7 +8,7 @@ import { siteConfig } from "@/config/site.config";
 import { absoluteUrl, JsonLd } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 
-import { Breadcrumbs, MarkdownContent } from "@/components/shared";
+import { Breadcrumbs, MarkdownContent, ShareButton } from "@/components/shared";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -141,6 +141,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </time>
           </>
         ) : null}
+        <span className="ml-auto">
+          <ShareButton title={post.title} url={absoluteUrl(`/blog/${post.slug}`)} />
+        </span>
       </div>
 
       {post.cover_image_url ? (
