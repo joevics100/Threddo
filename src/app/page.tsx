@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { siteConfig } from "@/config/site.config";
@@ -83,19 +84,17 @@ export default async function HomePage() {
         }}
       />
       {/* Hero */}
-      <section
-        className="relative overflow-hidden bg-[#1B1F3B] bg-cover bg-center text-white"
-        style={{ backgroundImage: "url(/hero.jpg)" }}
-      >
+      <section className="relative overflow-hidden bg-[#1B1F3B] text-white">
+        <Image src="/hero.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#E8A33D] opacity-20 blur-3xl"
+          className="pointer-events-none absolute -top-24 -right-24 z-10 h-96 w-96 rounded-full bg-[#E8A33D] opacity-20 blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-[#E8543D] opacity-10 blur-3xl"
+          className="pointer-events-none absolute -bottom-32 left-1/3 z-10 h-80 w-80 rounded-full bg-[#E8543D] opacity-10 blur-3xl"
         />
-        <div className="relative mx-auto flex max-w-6xl flex-col items-center px-6 py-10 text-center md:py-14">
+        <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 py-10 text-center md:py-14">
           <h1
             className="max-w-2xl text-3xl leading-[1.1] font-[var(--font-display)] font-bold tracking-tight md:text-6xl"
             style={{ textShadow: "0 2px 16px rgba(0,0,0,0.65), 0 1px 3px rgba(0,0,0,0.8)" }}
@@ -156,7 +155,7 @@ export default async function HomePage() {
 
           {listings && listings.length > 0 ? (
             <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {listings.map((listing) => (
+              {listings.map((listing, index) => (
                 <ListingCard
                   key={listing.id}
                   id={listing.id}
@@ -168,6 +167,7 @@ export default async function HomePage() {
                   lga={listing.lga}
                   images={listing.images ?? []}
                   isSaved={user ? savedIds.has(listing.id) : undefined}
+                  priority={index === 0}
                 />
               ))}
             </div>
