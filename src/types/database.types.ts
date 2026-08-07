@@ -104,6 +104,7 @@ export interface Database {
           town: string | null;
           images: string[];
           status: ListingStatus;
+          is_sold: boolean;
           rejection_reason: string | null;
           allow_calls: boolean;
           whatsapp_number: string | null;
@@ -133,6 +134,7 @@ export interface Database {
           town?: string | null;
           images?: string[];
           status?: ListingStatus;
+          is_sold?: boolean;
           rejection_reason?: string | null;
           allow_calls?: boolean;
           whatsapp_number?: string | null;
@@ -162,6 +164,7 @@ export interface Database {
           town?: string | null;
           images?: string[];
           status?: ListingStatus;
+          is_sold?: boolean;
           rejection_reason?: string | null;
           allow_calls?: boolean;
           whatsapp_number?: string | null;

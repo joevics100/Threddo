@@ -135,7 +135,7 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
     ? sortCategoriesOtherLast((categories ?? []).filter((c) => c.parent_id === category.id))
     : [];
 
-  const selectColumns = "id, title, price, is_free, condition, state, lga, images";
+  const selectColumns = "id, title, price, is_free, condition, state, lga, images, is_sold";
   let query =
     params.verifiedOnly === "1"
       ? supabase
@@ -315,6 +315,7 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
                 lga={listing.lga}
                 images={listing.images ?? []}
                 isSaved={user ? savedIds.has(listing.id) : undefined}
+                isSold={listing.is_sold}
               />
             ))}
           </div>

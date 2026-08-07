@@ -212,3 +212,48 @@ export async function deleteListingAction(listingId: string): Promise<DeleteList
   revalidatePath("/dashboard/listings");
   return {};
 }
+
+export interface SetListingSoldResult {
+  error?: string;
+}
+
+/**
+ * Marks (or unmarks) a listing as sold. Owner and admin can both call this —
+ * RLS ("Users can update their own listings" / "Admins can update any
+ * listing") decides who's actually allowed; if neither applies, the update
+ * simply matches zero rows rather than throwing, so we check that explicitly.
+ */
+export async function setListingSoldAction(
+  listingId: string,
+  isSold: boolean
+): Promise<SetListingSoldResult> {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Your session has expired — please log in again." };
+  }
+
+  const { data, error } = await supabase
+    .from("listings")
+    .update({ is_sold: isSold })
+    .eq("id", listingId)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    return { error: "Couldn't update this listing. Please try again." };
+  }
+  if (!data) {
+    return { error: "You don't have permission to do that." };
+  }
+
+  revalidatePath("/dashboard/listings");
+  revalidatePath("/admin/listings");
+  revalidatePath(`/listings/${listingId}`);
+  revalidatePath("/listings");
+  revalidatePath("/");
+  return {};
+}

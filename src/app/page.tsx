@@ -33,7 +33,7 @@ export default async function HomePage() {
     supabase.from("categories").select("id, name, slug, parent_id").order("name"),
     supabase
       .from("listings")
-      .select("id, title, price, is_free, condition, state, lga, images")
+      .select("id, title, price, is_free, condition, state, lga, images, is_sold")
       .eq("status", "approved")
       .order("created_at", { ascending: false })
       .limit(8)
@@ -107,7 +107,7 @@ export default async function HomePage() {
             <HomeSearchBar />
           </div>
 
-          <div className="mt-4 flex w-full [scrollbar-width:none] gap-2 overflow-x-auto px-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mt-4 flex w-full gap-2 overflow-x-auto px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {QUICK_FILTERS.map((filter) => (
               <Link
                 key={filter.label}
@@ -168,6 +168,7 @@ export default async function HomePage() {
                   lga={listing.lga}
                   images={listing.images ?? []}
                   isSaved={user ? savedIds.has(listing.id) : undefined}
+                  isSold={listing.is_sold}
                 />
               ))}
             </div>

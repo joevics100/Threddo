@@ -22,13 +22,13 @@ const ESCROW_STEPS = [
   "Admin releases funds to seller"
 ];
 
-export function EscrowDialog() {
+export function EscrowDialog({ disabled }: { disabled?: boolean } = {}) {
   const hasSupportNumber = Boolean(siteConfig.escrowSupportWhatsAppLink);
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button type="button" variant="outline" size="sm">
+      <DialogTrigger asChild disabled={disabled}>
+        <Button type="button" variant="outline" size="sm" disabled={disabled}>
           Trade with Escrow
         </Button>
       </DialogTrigger>

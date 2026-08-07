@@ -29,7 +29,7 @@ export default async function AdminListingsPage({ searchParams }: AdminListingsP
   const { data: listings } = await supabase
     .from("listings")
     .select(
-      "id, title, price, is_free, condition, state, lga, images, created_at, category:categories!listings_category_id_fkey(name), seller:profiles!listings_user_id_fkey(full_name)"
+      "id, title, price, is_free, condition, state, lga, images, created_at, is_sold, category:categories!listings_category_id_fkey(name), seller:profiles!listings_user_id_fkey(full_name)"
     )
     .eq("status", status)
     .order("created_at", { ascending: false });
@@ -44,6 +44,7 @@ export default async function AdminListingsPage({ searchParams }: AdminListingsP
     lga: l.lga,
     images: l.images,
     created_at: l.created_at,
+    is_sold: l.is_sold,
     category_name: l.category?.name ?? null,
     seller_name: l.seller?.full_name ?? null
   }));

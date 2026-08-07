@@ -8,6 +8,7 @@ import { Pencil, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 import { DeleteListingButton } from "@/features/listings/components/DeleteListingButton";
+import { MarkSoldButton } from "@/features/listings/components/MarkSoldButton";
 import { formatNaira } from "@/features/listings/lib/format";
 
 export const metadata: Metadata = {
@@ -38,7 +39,7 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
 
   const { data: listings } = await supabase
     .from("listings")
-    .select("id, title, price, is_free, status, rejection_reason, images")
+    .select("id, title, price, is_free, status, is_sold, rejection_reason, images")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -99,13 +100,15 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
 
               <span
                 className={`w-fit rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
-                  STATUS_STYLES[listing.status] ?? "bg-black/5 text-black/60"
+                  listing.is_sold
+                    ? "bg-[#1B1F3B]/10 text-[#1B1F3B]"
+                    : (STATUS_STYLES[listing.status] ?? "bg-black/5 text-black/60")
                 }`}
               >
-                {listing.status}
+                {listing.is_sold ? "Sold" : listing.status}
               </span>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Link
                   href={`/listings/${listing.id}/edit`}
                   className="flex items-center gap-1.5 rounded-lg border border-black/10 px-3 py-1.5 text-xs font-semibold text-[#1B1F3B] transition hover:bg-black/5"
@@ -113,6 +116,9 @@ export default async function MyListingsPage({ searchParams }: MyListingsPagePro
                   <Pencil className="size-3.5" />
                   Edit
                 </Link>
+                {listing.status === "approved" ? (
+                  <MarkSoldButton listingId={listing.id} isSold={listing.is_sold} />
+                ) : null}
                 <DeleteListingButton listingId={listing.id} listingTitle={listing.title} />
               </div>
             </div>
