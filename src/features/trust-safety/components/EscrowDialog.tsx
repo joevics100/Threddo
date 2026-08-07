@@ -37,8 +37,7 @@ export function EscrowDialog({ disabled }: { disabled?: boolean } = {}) {
           <DialogTitle>Threddo Escrow</DialogTitle>
           <DialogDescription>
             For extra peace of mind on higher-value items, Threddo admin can hold payment until
-            you&apos;ve confirmed the item is as described. A 5% fee applies, deducted from the
-            amount released to the seller.
+            you&apos;ve confirmed the item is as described. A 5% fee applies.
           </DialogDescription>
         </DialogHeader>
 
@@ -49,8 +48,8 @@ export function EscrowDialog({ disabled }: { disabled?: boolean } = {}) {
         </ol>
 
         <p className="rounded-lg bg-[#E8A33D]/10 px-3 py-2 text-xs text-[#1B1F3B]">
-          Escrow fee: <span className="font-semibold">5% of the item price</span>, covered by the
-          seller from the released funds.
+          Escrow fee: <span className="font-semibold">5% of the item price</span>, sent as part of
+          the payment to admin. Returned if the deal falls through.
         </p>
 
         <DialogFooter>
