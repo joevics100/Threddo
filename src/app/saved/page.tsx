@@ -24,7 +24,7 @@ export default async function SavedPage() {
   const { data: saved } = await supabase
     .from("saved_listings")
     .select(
-      "listing_id, listing:listings(id, title, price, is_free, condition, state, lga, images, status)"
+      "listing_id, listing:listings(id, title, price, is_free, condition, state, lga, images, status, is_sold)"
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
@@ -54,6 +54,7 @@ export default async function SavedPage() {
               lga={listing!.lga}
               images={listing!.images ?? []}
               isSaved
+              isSold={listing!.is_sold}
             />
           ))}
         </div>

@@ -36,6 +36,7 @@ export interface ProductJsonLdInput {
   condition: string;
   brand: string | null;
   category: string | null;
+  isSold?: boolean;
 }
 
 const CONDITION_SCHEMA_MAP: Record<string, string> = {
@@ -66,7 +67,7 @@ export function productJsonLd(listing: ProductJsonLdInput) {
       url: absoluteUrl(`/listings/${listing.id}`),
       priceCurrency: "NGN",
       price: listing.isFree ? "0" : String(listing.price ?? "0"),
-      availability: "https://schema.org/InStock"
+      availability: listing.isSold ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"
     }
   };
 }

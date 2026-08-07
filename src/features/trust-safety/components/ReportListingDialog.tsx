@@ -18,9 +18,10 @@ import { REPORT_REASON_OPTIONS } from "@/features/trust-safety/constants/report-
 
 interface ReportListingDialogProps {
   listingId: string;
+  disabled?: boolean;
 }
 
-export function ReportListingDialog({ listingId }: ReportListingDialogProps) {
+export function ReportListingDialog({ listingId, disabled }: ReportListingDialogProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [reason, setReason] = useState<string>();
@@ -62,10 +63,11 @@ export function ReportListingDialog({ listingId }: ReportListingDialogProps) {
         }
       }}
     >
-      <DialogTrigger asChild>
+      <DialogTrigger asChild disabled={disabled}>
         <Button
           type="button"
           size="sm"
+          disabled={disabled}
           className="bg-destructive text-white hover:bg-destructive/90"
         >
           Report listing

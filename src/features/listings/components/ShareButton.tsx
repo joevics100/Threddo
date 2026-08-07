@@ -11,11 +11,12 @@ interface ShareButtonProps {
 
 export function ShareButton({ title, url }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
+  const shareText = `Check this out on Threddo: ${title}`;
 
   async function handleShare() {
     if (navigator.share) {
       try {
-        await navigator.share({ title, url });
+        await navigator.share({ title, text: shareText, url });
       } catch {
         // User cancelled the share sheet — nothing to do.
       }
@@ -23,7 +24,7 @@ export function ShareButton({ title, url }: ShareButtonProps) {
     }
 
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(`${shareText}\n${url}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {

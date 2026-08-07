@@ -114,7 +114,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
 
   const { data: similar } = await supabase
     .from("listings")
-    .select("id, title, price, is_free, condition, state, lga, images")
+    .select("id, title, price, is_free, condition, state, lga, images, is_sold")
     .eq("category_id", listing.category_id)
     .eq("status", "approved")
     .neq("id", listing.id)
@@ -170,7 +170,8 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
             isFree: listing.is_free,
             condition: listing.condition,
             brand: listing.brand,
-            category: listing.category?.name ?? null
+            category: listing.category?.name ?? null,
+            isSold: listing.is_sold
           })}
         />
       ) : null}
@@ -182,6 +183,12 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           {listing.status === "pending"
             ? "This listing is awaiting admin approval — only you can see this page."
             : "This listing was rejected — only you can see this page."}
+        </div>
+      ) : null}
+
+      {listing.is_sold ? (
+        <div className="mb-6 rounded-lg bg-destructive px-4 py-2 text-center text-sm font-bold tracking-wide text-white uppercase">
+          Sold
         </div>
       ) : null}
 
@@ -292,18 +299,28 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           <div className="mt-4 flex gap-3">
             {whatsappLink ? (
               <a
-                href={whatsappLink}
+                href={listing.is_sold ? undefined : whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 rounded-lg bg-[#25D366] px-6 py-3 text-center font-semibold text-white transition hover:opacity-90"
+                aria-disabled={listing.is_sold}
+                className={`flex-1 rounded-lg px-6 py-3 text-center font-semibold text-white transition ${
+                  listing.is_sold
+                    ? "pointer-events-none bg-black/20"
+                    : "bg-[#25D366] hover:opacity-90"
+                }`}
               >
                 WhatsApp
               </a>
             ) : null}
             {listing.allow_calls && sellerNumber ? (
               <a
-                href={`tel:${sellerNumber}`}
-                className="flex-1 rounded-lg border border-[#1B1F3B]/20 px-6 py-3 text-center font-semibold text-[#1B1F3B] transition hover:bg-[#1B1F3B]/5"
+                href={listing.is_sold ? undefined : `tel:${sellerNumber}`}
+                aria-disabled={listing.is_sold}
+                className={`flex-1 rounded-lg border px-6 py-3 text-center font-semibold transition ${
+                  listing.is_sold
+                    ? "pointer-events-none border-black/10 text-black/30"
+                    : "border-[#1B1F3B]/20 text-[#1B1F3B] hover:bg-[#1B1F3B]/5"
+                }`}
               >
                 Call
               </a>
@@ -311,8 +328,8 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           </div>
 
           <div className="mt-3 flex flex-wrap gap-3">
-            <EscrowDialog />
-            <ReportListingDialog listingId={listing.id} />
+            <EscrowDialog disabled={listing.is_sold} />
+            <ReportListingDialog listingId={listing.id} disabled={listing.is_sold} />
           </div>
 
           <p className="mt-6 text-xs text-black/40">
@@ -334,7 +351,13 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           <div className="mt-6 border-t border-black/5 pt-6">
             <h3 className="text-sm font-semibold text-[#1B1F3B]">Leave a review</h3>
             <div className="mt-3">
-              <ReviewForm listingId={listing.id} sellerId={listing.user_id} />
+              {listing.is_sold ? (
+                <p className="text-sm text-black/50">
+                  Reviews are closed for this listing now that it&apos;s marked sold.
+                </p>
+              ) : (
+                <ReviewForm listingId={listing.id} sellerId={listing.user_id} />
+              )}
             </div>
           </div>
         ) : null}
@@ -357,6 +380,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
                 state={item.state}
                 lga={item.lga}
                 images={item.images ?? []}
+                isSold={item.is_sold}
               />
             ))}
           </div>

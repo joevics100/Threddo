@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { ListingCondition } from "@/types/database.types";
 
 import { Button } from "@/ui";
+import { MarkSoldButton } from "@/features/listings/components/MarkSoldButton";
 import { formatNaira, getConditionLabel } from "@/features/listings/lib/format";
 import {
   approveListingAction,
@@ -23,6 +24,7 @@ export interface ModerationListing {
   lga: string | null;
   images: string[];
   created_at: string;
+  is_sold: boolean;
   category_name: string | null;
   seller_name: string | null;
   rejection_reason?: string | null;
@@ -79,6 +81,11 @@ export function ListingModerationRow({
             >
               {listing.title}
             </Link>
+            {listing.is_sold ? (
+              <span className="ml-2 rounded-full bg-[#1B1F3B]/10 px-2 py-0.5 text-[10px] font-semibold text-[#1B1F3B] uppercase">
+                Sold
+              </span>
+            ) : null}
             <p className="text-sm text-black/60">
               {formatNaira(listing.is_free ? null : listing.price)} ·{" "}
               {getConditionLabel(listing.condition)} ·{" "}
@@ -143,6 +150,9 @@ export function ListingModerationRow({
               >
                 Reject
               </Button>
+            ) : null}
+            {status === "approved" ? (
+              <MarkSoldButton listingId={listing.id} isSold={listing.is_sold} />
             ) : null}
           </div>
         )}

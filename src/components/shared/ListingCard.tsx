@@ -23,6 +23,7 @@ export interface ListingCardProps {
   images?: string[];
   /** Only pass this when the viewer is logged in — omit to hide the save button entirely. */
   isSaved?: boolean;
+  isSold?: boolean;
 }
 
 export function ListingCard({
@@ -34,7 +35,8 @@ export function ListingCard({
   state,
   lga,
   images = [],
-  isSaved
+  isSaved,
+  isSold
 }: ListingCardProps) {
   const location = [lga, state].filter(Boolean).join(", ");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -61,7 +63,7 @@ export function ListingCard({
             <div
               ref={scrollRef}
               onScroll={handleScroll}
-              className="flex h-full snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="flex h-full snap-x snap-mandatory overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               {images.map((url, index) => (
                 <Link
@@ -138,6 +140,14 @@ export function ListingCard({
         {isSaved !== undefined ? (
           <div className="absolute top-2 right-2">
             <SaveButton listingId={id} initialSaved={isSaved} />
+          </div>
+        ) : null}
+
+        {isSold ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <span className="-rotate-6 rounded-md border-2 border-white bg-destructive px-3 py-1 text-sm font-bold tracking-widest text-white uppercase shadow-lg">
+              Sold
+            </span>
           </div>
         ) : null}
       </div>

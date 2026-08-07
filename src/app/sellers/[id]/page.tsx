@@ -50,7 +50,7 @@ export default async function SellerProfilePage({ params }: SellerProfilePagePro
   const supabase = await createClient();
   const { data: listings } = await supabase
     .from("listings")
-    .select("id, title, price, is_free, condition, state, lga, images")
+    .select("id, title, price, is_free, condition, state, lga, images, is_sold")
     .eq("user_id", id)
     .eq("status", "approved")
     .order("created_at", { ascending: false });
@@ -94,6 +94,7 @@ export default async function SellerProfilePage({ params }: SellerProfilePagePro
                 state={listing.state}
                 lga={listing.lga}
                 images={listing.images ?? []}
+                isSold={listing.is_sold}
               />
             ))}
           </div>
