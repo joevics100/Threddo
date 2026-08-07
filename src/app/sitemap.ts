@@ -4,28 +4,24 @@ import { siteConfig } from "@/config/site.config";
 
 import { createClient } from "@/lib/supabase/server";
 
-// Sanity ceiling so a runaway listings table can't blow past the 50k-URL
-// per-sitemap limit — comfortably far off for a while, and easy to split
-// into multiple sitemaps (generateSitemaps) if Threddo ever gets there.
-const MAX_LISTINGS_IN_SITEMAP = 5000;
-
+// Individual listing pages and category/subcategory filter pages are
+// deliberately NOT included here yet:
+//  - Listings are transient (sold items get removed) and, at current
+//    volume, mostly thin/duplicate content — indexing them now would
+//    burn crawl budget on pages that churn out from under Google.
+//  - Category pages have the same thin-content problem while there are
+//    only a handful of listings per category.
+// Once there's enough steady listing volume, reintroduce category routes
+// first (they're stable URLs, unlike individual listings), gated by a
+// minimum listing count per category so empty/sparse ones stay out.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
 
-  const [{ data: categories }, { data: listings }, { data: posts }] = await Promise.all([
-    supabase.from("categories").select("id, slug, parent_id").order("name"),
-    supabase
-      .from("listings")
-      .select("id, updated_at")
-      .eq("status", "approved")
-      .order("created_at", { ascending: false })
-      .limit(MAX_LISTINGS_IN_SITEMAP),
-    supabase
-      .from("blog_posts")
-      .select("slug, updated_at")
-      .eq("status", "published")
-      .order("published_at", { ascending: false })
-  ]);
+  const { data: posts } = await supabase
+    .from("blog_posts")
+    .select("slug, updated_at")
+    .eq("status", "published")
+    .order("published_at", { ascending: false });
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${siteConfig.url}/`, changeFrequency: "daily", priority: 1 },
@@ -37,27 +33,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteConfig.url}/terms`, changeFrequency: "yearly", priority: 0.2 }
   ];
 
-  const slugById = new Map((categories ?? []).map((c) => [c.id, c.slug]));
-
-  const categoryRoutes: MetadataRoute.Sitemap = (categories ?? []).map((category) => {
-    const parentSlug = category.parent_id ? slugById.get(category.parent_id) : null;
-    const url = parentSlug
-      ? `${siteConfig.url}/listings?category=${parentSlug}&subcategory=${category.slug}`
-      : `${siteConfig.url}/listings?category=${category.slug}`;
-    return {
-      url,
-      changeFrequency: "daily",
-      priority: parentSlug ? 0.6 : 0.8
-    };
-  });
-
-  const listingRoutes: MetadataRoute.Sitemap = (listings ?? []).map((listing) => ({
-    url: `${siteConfig.url}/listings/${listing.id}`,
-    lastModified: listing.updated_at,
-    changeFrequency: "weekly",
-    priority: 0.6
-  }));
-
   const blogRoutes: MetadataRoute.Sitemap = (posts ?? []).map((post) => ({
     url: `${siteConfig.url}/blog/${post.slug}`,
     lastModified: post.updated_at,
@@ -65,5 +40,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...listingRoutes, ...blogRoutes];
+  return [...staticRoutes, ...blogRoutes];
 }
