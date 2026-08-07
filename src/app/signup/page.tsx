@@ -3,17 +3,25 @@ import type { Metadata } from "next";
 import { siteConfig } from "@/config/site.config";
 
 import { Separator } from "@/ui";
-import { GoogleSignInButton, SignupForm } from "@/features/auth";
+import { AuthTabs, GoogleSignInButton, SignupForm } from "@/features/auth";
 
 export const metadata: Metadata = {
   title: "Sign up",
   robots: { index: false, follow: true }
 };
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+
   return (
     <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-[#FBF8F3] px-6 py-16">
       <div className="w-full max-w-sm rounded-2xl border border-black/5 bg-white p-8 shadow-sm">
+        <AuthTabs active="signup" next={next} />
+
         <h1 className="text-2xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
           Create your account
         </h1>

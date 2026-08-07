@@ -5,11 +5,11 @@ import { timeAgo } from "@/lib/date";
 import { absoluteUrl, JsonLd, productJsonLd } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 
+import { ShareButton } from "@/components/shared";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { ListingCard } from "@/components/shared/ListingCard";
 import { ListingImageGallery } from "@/features/listings/components/ListingImageGallery";
 import { SaveButton } from "@/features/listings/components/SaveButton";
-import { ShareButton } from "@/features/listings/components/ShareButton";
 import {
   buildWhatsAppLink,
   formatNaira,

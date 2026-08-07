@@ -303,7 +303,7 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
       <div className="mt-6">
         {listings && listings.length > 0 ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {listings.map((listing) => (
+            {listings.map((listing, index) => (
               <ListingCard
                 key={listing.id}
                 id={listing.id}
@@ -316,6 +316,7 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
                 images={listing.images ?? []}
                 isSaved={user ? savedIds.has(listing.id) : undefined}
                 isSold={listing.is_sold}
+                priority={index === 0 && page === 1}
               />
             ))}
           </div>

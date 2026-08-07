@@ -7,3 +7,4 @@ export * from "./LocationSelect";
 export * from "./SellerAvatar";
 export * from "./SettingsRow";
 export * from "./SettingsSection";
+export * from "./ShareButton";
