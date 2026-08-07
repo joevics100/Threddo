@@ -17,6 +17,8 @@ interface CategorySelectProps {
   onCategoryChange: (categoryId: string | null) => void;
   onSubcategoryChange: (subcategoryId: string | null) => void;
   disabled?: boolean;
+  categoryInvalid?: boolean;
+  subcategoryInvalid?: boolean;
 }
 
 /**
@@ -33,7 +35,9 @@ export function CategorySelect({
   subcategoryId,
   onCategoryChange,
   onSubcategoryChange,
-  disabled
+  disabled,
+  categoryInvalid,
+  subcategoryInvalid
 }: CategorySelectProps) {
   const topLevel = sortCategoriesOtherLast(categories.filter((c) => !c.parent_id));
   const subcategories = categories.filter((c) => c.parent_id === categoryId);
@@ -50,7 +54,7 @@ export function CategorySelect({
           }}
           disabled={disabled}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full" aria-invalid={categoryInvalid || undefined}>
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
           <SelectContent>
@@ -70,7 +74,7 @@ export function CategorySelect({
           onValueChange={onSubcategoryChange}
           disabled={disabled || !categoryId || subcategories.length === 0}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full" aria-invalid={subcategoryInvalid || undefined}>
             <SelectValue
               placeholder={categoryId ? "Select a subcategory" : "Pick a category first"}
             />

@@ -10,10 +10,12 @@ interface LocationSelectProps {
   disabled?: boolean;
   /** "grid" = state/LGA side by side (default), "stack" = full-width stacked — useful in narrow sidebars. */
   layout?: "grid" | "stack";
+  stateInvalid?: boolean;
+  lgaInvalid?: boolean;
 }
 
 const selectClass =
-  "w-full rounded-lg border border-input bg-white px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#E8A33D] disabled:bg-black/5 disabled:text-black/40";
+  "w-full rounded-lg border border-input bg-white px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#E8A33D] disabled:bg-black/5 disabled:text-black/40 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20";
 
 /**
  * Reusable State → LGA cascading picker, backed by the complete
@@ -27,7 +29,9 @@ export function LocationSelect({
   onStateChange,
   onLgaChange,
   disabled,
-  layout = "grid"
+  layout = "grid",
+  stateInvalid,
+  lgaInvalid
 }: LocationSelectProps) {
   const lgas = state ? (NIGERIAN_LGAS[state] ?? []) : [];
 
@@ -40,6 +44,7 @@ export function LocationSelect({
         <select
           value={state ?? ""}
           disabled={disabled}
+          aria-invalid={stateInvalid || undefined}
           onChange={(e) => {
             onStateChange(e.target.value || null);
             onLgaChange(null);
@@ -60,6 +65,7 @@ export function LocationSelect({
         <select
           value={lga ?? ""}
           disabled={disabled || !state}
+          aria-invalid={lgaInvalid || undefined}
           onChange={(e) => onLgaChange(e.target.value || null)}
           className={selectClass}
         >

@@ -16,6 +16,8 @@ interface SegmentedControlProps extends Omit<
   "onChange"
 > {
   options: SegmentedControlOption[];
+  /** Shows a red ring around the whole group when the field failed validation. */
+  invalid?: boolean;
 }
 
 /**
@@ -23,11 +25,16 @@ interface SegmentedControlProps extends Omit<
  * hood. Used for single-choice fields presented as a "slider" in the design
  * (condition, material, delivery method) rather than a native <select>.
  */
-export function SegmentedControl({ options, className, ...props }: SegmentedControlProps) {
+export function SegmentedControl({ options, className, invalid, ...props }: SegmentedControlProps) {
   return (
     <RadioGroupPrimitive.Root
       data-slot="segmented-control"
-      className={cn("flex flex-wrap gap-2", className)}
+      aria-invalid={invalid || undefined}
+      className={cn(
+        "flex flex-wrap gap-2 rounded-lg",
+        invalid && "outline-2 outline-offset-4 outline-destructive/60",
+        className
+      )}
       {...props}
     >
       {options.map((option) => (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 
 import { ChevronLeft, ChevronRight, Sparkles, Star, X } from "lucide-react";
@@ -40,6 +40,7 @@ import { compressListingImage } from "@/features/listings/lib/compress-image";
 import { uploadListingImages } from "@/features/listings/lib/upload-listing-images";
 import {
   listingFormSchema,
+  withSubcategoryRequirement,
   type ListingFormInput
 } from "@/features/listings/schemas/listing.schemas";
 
@@ -122,8 +123,20 @@ export function PostListingForm({
   const hasProfileNumber = Boolean(defaultWhatsappNumber);
   const [useDifferentNumber, setUseDifferentNumber] = useState(isEdit ? true : !hasProfileNumber);
 
+  // Subcategory is only required when the chosen top-level category actually
+  // has subcategories (some, like "Other", don't) — figured out from the
+  // live category tree rather than baked into the static schema.
+  const categoryIdsRequiringSubcategory = useMemo(
+    () => new Set(categories.filter((c) => c.parent_id).map((c) => c.parent_id as string)),
+    [categories]
+  );
+  const formSchema = useMemo(
+    () => withSubcategoryRequirement(listingFormSchema, categoryIdsRequiringSubcategory),
+    [categoryIdsRequiringSubcategory]
+  );
+
   const form = useForm<ListingFormInput>({
-    resolver: zodResolver(listingFormSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: initialValues ?? DEFAULT_VALUES(defaultWhatsappNumber)
   });
 
@@ -309,9 +322,50 @@ export function PostListingForm({
   }
 
   // ── Preview + submit ────────────────────────────────────────────────────
+  // Top-to-bottom order the fields actually appear in the form, used to pick
+  // the first one to scroll to when several are invalid at once.
+  const FIELD_ORDER = [
+    "images",
+    "title",
+    "price",
+    "quantity",
+    "description",
+    "categoryId",
+    "suitableFor",
+    "condition",
+    "state",
+    "deliveryMethod",
+    "whatsappNumber",
+    "termsAccepted"
+  ] as const;
+
+  function scrollToField(key: string) {
+    const el = document.querySelector<HTMLElement>(`[data-field="${key}"]`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const focusable = el.querySelector<HTMLElement>(
+      'input, select, textarea, button, [role="radio"], [tabindex]'
+    );
+    // Let the smooth scroll get underway before stealing focus, so the
+    // browser doesn't jump straight there without the animation.
+    window.setTimeout(() => focusable?.focus({ preventScroll: true }), 300);
+  }
+
+  function scrollToFirstError(errors: Partial<Record<string, unknown>>) {
+    // categoryId's data-field also covers subcategoryId (they share one
+    // section); state's data-field also covers lga.
+    const normalized = { ...errors } as Record<string, unknown>;
+    if (normalized.subcategoryId && !normalized.categoryId) normalized.categoryId = true;
+    if (normalized.lga && !normalized.state) normalized.state = true;
+
+    const firstKey = FIELD_ORDER.find((key) => normalized[key]);
+    if (firstKey) scrollToField(firstKey);
+  }
+
   function openPreview(values: ListingFormInput) {
     if (images.length === 0) {
       setImageError("Add at least one photo.");
+      scrollToField("images");
       return;
     }
     setImageError(null);
@@ -381,7 +435,7 @@ export function PostListingForm({
         </div>
       ) : null}
 
-      <form onSubmit={form.handleSubmit(openPreview)} className="grid gap-8">
+      <form onSubmit={form.handleSubmit(openPreview, scrollToFirstError)} className="grid gap-8">
         {isAnalyzing ? (
           <div className="sticky top-2 z-10 flex items-center justify-center gap-2 rounded-full bg-[#1B1F3B] px-4 py-2 text-sm font-medium text-white shadow-md">
             <Sparkles className="size-4 animate-pulse text-[#E8A33D]" />
@@ -390,7 +444,7 @@ export function PostListingForm({
         ) : null}
 
         {/* Photos */}
-        <div className="grid gap-2">
+        <div className="grid gap-2" data-field="images">
           <label className="text-sm font-medium">
             Photos <span className="text-muted-foreground">(up to {MAX_LISTING_IMAGES})</span>
           </label>
@@ -398,7 +452,11 @@ export function PostListingForm({
             Straight from your phone is fine — we&apos;ll compress large photos automatically.
           </p>
 
-          <div className="flex flex-wrap gap-3">
+          <div
+            className={`flex flex-wrap gap-3 rounded-lg ${
+              imageError ? "outline-2 outline-offset-4 outline-destructive/60" : ""
+            }`}
+          >
             {images.map((item, index) => (
               <div
                 key={item.kind === "existing" ? item.url : item.previewUrl}
@@ -511,7 +569,7 @@ export function PostListingForm({
           control={form.control}
           name="title"
           render={({ field }) => (
-            <FormItem>
+            <FormItem data-field="title">
               <FormLabel>Item name</FormLabel>
               <FormControl>
                 <Input placeholder="e.g. Blue Ankara Gown" {...field} />
@@ -526,7 +584,7 @@ export function PostListingForm({
             control={form.control}
             name="price"
             render={({ field }) => (
-              <FormItem>
+              <FormItem data-field="price">
                 <FormLabel>Price (naira)</FormLabel>
                 <FormControl>
                   <NairaInput
@@ -580,7 +638,7 @@ export function PostListingForm({
           control={form.control}
           name="quantity"
           render={({ field }) => (
-            <FormItem>
+            <FormItem data-field="quantity">
               <FormLabel>
                 Quantity available <span className="text-muted-foreground">(if more than one)</span>
               </FormLabel>
@@ -602,14 +660,14 @@ export function PostListingForm({
           control={form.control}
           name="description"
           render={({ field }) => (
-            <FormItem>
+            <FormItem data-field="description">
               <FormLabel>Description</FormLabel>
               <FormControl>
                 <textarea
                   {...field}
                   rows={6}
                   placeholder="Describe the item — fit, any flaws, why you're letting it go"
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30"
+                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/20 dark:bg-input/30"
                 />
               </FormControl>
               <FormMessage />
@@ -617,7 +675,7 @@ export function PostListingForm({
           )}
         />
 
-        <div>
+        <div data-field="categoryId">
           <CategorySelect
             categories={categories}
             categoryId={form.watch("categoryId") || null}
@@ -628,15 +686,22 @@ export function PostListingForm({
             onSubcategoryChange={(value) =>
               form.setValue("subcategoryId", value, { shouldValidate: true })
             }
+            categoryInvalid={!!form.formState.errors.categoryId}
+            subcategoryInvalid={!!form.formState.errors.subcategoryId}
           />
           {form.formState.errors.categoryId ? (
             <p className="mt-1 text-sm text-destructive">
               {form.formState.errors.categoryId.message}
             </p>
           ) : null}
+          {form.formState.errors.subcategoryId ? (
+            <p className="mt-1 text-sm text-destructive">
+              {form.formState.errors.subcategoryId.message}
+            </p>
+          ) : null}
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid gap-2" data-field="suitableFor">
           <label className="text-sm font-medium">Suitable for</label>
           <SegmentedControl
             options={SUITABLE_FOR_OPTIONS}
@@ -646,6 +711,7 @@ export function PostListingForm({
                 shouldValidate: true
               })
             }
+            invalid={!!form.formState.errors.suitableFor}
           />
           {form.formState.errors.suitableFor ? (
             <p className="text-sm text-destructive">{form.formState.errors.suitableFor.message}</p>
@@ -668,7 +734,7 @@ export function PostListingForm({
           )}
         />
 
-        <div className="grid gap-2">
+        <div className="grid gap-2" data-field="condition">
           <label className="text-sm font-medium">Condition</label>
           <SegmentedControl
             options={CONDITION_OPTIONS}
@@ -678,6 +744,7 @@ export function PostListingForm({
                 shouldValidate: true
               })
             }
+            invalid={!!form.formState.errors.condition}
           />
           {form.formState.errors.condition ? (
             <p className="text-sm text-destructive">{form.formState.errors.condition.message}</p>
@@ -729,12 +796,14 @@ export function PostListingForm({
           />
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-4" data-field="state">
           <LocationSelect
             state={form.watch("state") || null}
             lga={form.watch("lga") || null}
             onStateChange={(value) => form.setValue("state", value ?? "", { shouldValidate: true })}
             onLgaChange={(value) => form.setValue("lga", value ?? "", { shouldValidate: true })}
+            stateInvalid={!!form.formState.errors.state}
+            lgaInvalid={!!form.formState.errors.lga}
           />
           {form.formState.errors.state || form.formState.errors.lga ? (
             <p className="text-sm text-destructive">
@@ -759,7 +828,7 @@ export function PostListingForm({
           />
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid gap-2" data-field="deliveryMethod">
           <label className="text-sm font-medium">Delivery method</label>
           <SegmentedControl
             options={DELIVERY_METHOD_OPTIONS}
@@ -769,6 +838,7 @@ export function PostListingForm({
                 shouldValidate: true
               })
             }
+            invalid={!!form.formState.errors.deliveryMethod}
           />
           {form.formState.errors.deliveryMethod ? (
             <p className="text-sm text-destructive">
@@ -777,7 +847,7 @@ export function PostListingForm({
           ) : null}
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid gap-2" data-field="whatsappNumber">
           <FormLabel>WhatsApp number</FormLabel>
 
           {hasProfileNumber && !isEdit ? (
@@ -839,7 +909,10 @@ export function PostListingForm({
               control={form.control}
               name="termsAccepted"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start gap-2 space-y-0">
+                <FormItem
+                  className="flex flex-row items-start gap-2 space-y-0"
+                  data-field="termsAccepted"
+                >
                   <FormControl>
                     <Checkbox
                       checked={field.value}

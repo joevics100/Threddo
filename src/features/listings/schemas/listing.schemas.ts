@@ -50,6 +50,28 @@ function withPriceRefinement<T extends z.ZodType<{ isFree: boolean; price?: stri
   });
 }
 
+/**
+ * Cross-field rule that the base field defs above can't express on their
+ * own: subcategoryId is only required when the chosen top-level category
+ * actually has subcategories (some, like "Other", don't). The set of
+ * category IDs that require one is computed at runtime from the live
+ * category tree, so this is applied in the form component rather than
+ * baked into the static schema below.
+ */
+export function withSubcategoryRequirement<
+  T extends z.ZodType<{ categoryId: string; subcategoryId: string | null }>
+>(schema: T, categoryIdsRequiringSubcategory: Set<string>) {
+  return schema.superRefine((data, ctx) => {
+    if (categoryIdsRequiringSubcategory.has(data.categoryId) && !data.subcategoryId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select a subcategory",
+        path: ["subcategoryId"]
+      });
+    }
+  });
+}
+
 // Used by the client form's resolver. Deliberately excludes `images` — photo
 // files live in separate component state (not react-hook-form) since they
 // need to be uploaded to Storage before we have URLs to validate. Validating
