@@ -18,6 +18,7 @@ import {
   SegmentedControl
 } from "@/ui";
 import { getBlogCoverUploadUrl } from "@/features/blog/actions/blog-upload.actions";
+import { extractBlogPostContentAction } from "@/features/blog/actions/blog.actions";
 import { blogPostSchema, slugify, type BlogPostInput } from "@/features/blog/schemas/blog.schemas";
 import { compressListingImage } from "@/features/listings/lib/compress-image";
 
@@ -38,6 +39,10 @@ export function BlogPostForm({ mode, defaultValues, onSubmit }: BlogPostFormProp
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [slugTouched, setSlugTouched] = useState(mode === "edit");
+  const [rawMarkdown, setRawMarkdown] = useState("");
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiMessage, setAiMessage] = useState<string | null>(null);
 
   const form = useForm<BlogPostInput>({
     resolver: zodResolver(blogPostSchema),
@@ -86,6 +91,37 @@ export function BlogPostForm({ mode, defaultValues, onSubmit }: BlogPostFormProp
     }
   }
 
+  async function handleAutoFill() {
+    setAiError(null);
+    setAiMessage(null);
+    if (!rawMarkdown.trim()) {
+      setAiError("Paste the article's markdown first.");
+      return;
+    }
+    setIsExtracting(true);
+    try {
+      const result = await extractBlogPostContentAction(rawMarkdown);
+      if (result.error || !result.data) {
+        setAiError(result.error ?? "Couldn't process that article.");
+        return;
+      }
+      const out = result.data;
+      form.setValue("title", out.title, { shouldValidate: true });
+      form.setValue("slug", out.slug, { shouldValidate: true });
+      setSlugTouched(true);
+      form.setValue("excerpt", out.excerpt, { shouldValidate: true });
+      form.setValue("content", out.content, { shouldValidate: true });
+      form.setValue("tags", out.tags, { shouldValidate: true });
+      form.setValue("seoTitle", out.seoTitle, { shouldValidate: true });
+      form.setValue("seoDescription", out.seoDescription, { shouldValidate: true });
+      setAiMessage("Filled in the post from your article — review before saving.");
+    } catch {
+      setAiError("Couldn't process that article.");
+    } finally {
+      setIsExtracting(false);
+    }
+  }
+
   function handleSubmit(values: BlogPostInput) {
     setFormError(null);
     startTransition(async () => {
@@ -96,11 +132,45 @@ export function BlogPostForm({ mode, defaultValues, onSubmit }: BlogPostFormProp
     });
   }
 
+  // react-hook-form's watch() returns a subscription function that the
+  // React Compiler can't safely memoize — this is expected and the
+  // compiler already handles it correctly by skipping memoization here.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const coverImageUrl = form.watch("coverImageUrl");
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="grid gap-6">
+        <div className="grid gap-3 rounded-xl border border-dashed border-black/10 bg-black/[.02] p-4">
+          <div>
+            <label className="text-sm font-medium">Paste article markdown</label>
+            <p className="text-xs text-muted-foreground">
+              Paste the raw markdown (e.g. from Perplexity) and click Auto-fill — it fills in the
+              title, slug, excerpt, tags, SEO title/description, and a cleaned version of the
+              content below.
+            </p>
+          </div>
+          <textarea
+            value={rawMarkdown}
+            onChange={(e) => setRawMarkdown(e.target.value)}
+            rows={8}
+            placeholder="## Heading&#10;&#10;Paste the full markdown article here…"
+            className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 font-mono text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          />
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              onClick={handleAutoFill}
+              disabled={isExtracting}
+              className="w-fit bg-[#1B1F3B] text-white hover:bg-[#2a3060]"
+            >
+              {isExtracting ? "Auto-filling…" : "Auto-fill with AI"}
+            </Button>
+            {aiMessage ? <p className="text-sm text-emerald-600">{aiMessage}</p> : null}
+            {aiError ? <p className="text-sm text-destructive">{aiError}</p> : null}
+          </div>
+        </div>
+
         <FormField
           control={form.control}
           name="title"

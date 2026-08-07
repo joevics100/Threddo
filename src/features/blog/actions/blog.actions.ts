@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 import { blogPostSchema, type BlogPostInput } from "@/features/blog/schemas/blog.schemas";
+import { extractBlogPostFromMarkdown, type BlogExtraction } from "@/features/blog/lib/blog-ai";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -28,6 +29,33 @@ async function requireAdmin() {
 
 export interface BlogActionResult {
   error?: string;
+}
+
+export interface BlogExtractionResult {
+  data?: BlogExtraction;
+  error?: string;
+}
+
+export async function extractBlogPostContentAction(
+  rawMarkdown: string
+): Promise<BlogExtractionResult> {
+  if (!rawMarkdown.trim()) {
+    return { error: "Paste the article's markdown first." };
+  }
+
+  const { user, isAdmin } = await requireAdmin();
+  if (!user || !isAdmin) {
+    return { error: "You don't have permission to do that." };
+  }
+
+  try {
+    const data = await extractBlogPostFromMarkdown(rawMarkdown);
+    return { data };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Couldn't process this article right now."
+    };
+  }
 }
 
 export async function createBlogPostAction(values: BlogPostInput): Promise<BlogActionResult> {
