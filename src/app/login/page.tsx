@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { siteConfig } from "@/config/site.config";
 
 import { Separator } from "@/ui";
-import { GoogleSignInButton, LoginForm } from "@/features/auth";
+import { AuthTabs, GoogleSignInButton, LoginForm } from "@/features/auth";
 
 export const metadata: Metadata = {
   title: "Log in",
@@ -20,6 +20,8 @@ export default async function LoginPage({
   return (
     <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-[#FBF8F3] px-6 py-16">
       <div className="w-full max-w-sm rounded-2xl border border-black/5 bg-white p-8 shadow-sm">
+        <AuthTabs active="login" next={next} />
+
         <h1 className="text-2xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
           Welcome back
         </h1>
