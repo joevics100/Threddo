@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 
-import { ChevronLeft, ChevronRight, Sparkles, Star, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Sparkles, Star, X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -116,6 +116,10 @@ export function PostListingForm({
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
+  // Raw, not-yet-compressed picks — shown immediately with a "compressing"
+  // overlay so the user sees their photo right away instead of a blank gap
+  // while compression runs in the background.
+  const [pendingPreviews, setPendingPreviews] = useState<{ id: string; url: string }[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [previewValues, setPreviewValues] = useState<ListingFormInput | null>(null);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
@@ -152,6 +156,14 @@ export function PostListingForm({
       .map((item) => item.previewUrl);
     return () => newFileUrls.forEach((url) => URL.revokeObjectURL(url));
   }, [images]);
+
+  // Belt-and-suspenders cleanup for the raw "compressing" previews in case
+  // the component unmounts mid-compression.
+  const pendingPreviewsRef = useRef(pendingPreviews);
+  pendingPreviewsRef.current = pendingPreviews;
+  useEffect(() => {
+    return () => pendingPreviewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
+  }, []);
 
   // ── Draft (create mode only — saved locally in this browser; photos can't
   // be persisted this way, so only the text fields/selections are saved) ────
@@ -229,12 +241,19 @@ export function PostListingForm({
       return;
     }
 
+    const pending = incoming.map((file) => ({
+      id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`,
+      url: URL.createObjectURL(file)
+    }));
+    setPendingPreviews((prev) => [...prev, ...pending]);
     setIsCompressing(true);
     // Phone photos are routinely 3-8MB — compress before the size check
     // instead of rejecting them outright, so people don't have to go
     // find a photo editor just to post a listing.
     const compressed = await Promise.all(incoming.map(compressListingImage));
     setIsCompressing(false);
+    pending.forEach((p) => URL.revokeObjectURL(p.url));
+    setPendingPreviews((prev) => prev.filter((p) => !pending.some((done) => done.id === p.id)));
 
     const tooLarge = compressed.find((file) => file.size > MAX_IMAGE_SIZE_BYTES);
     if (tooLarge) {
@@ -517,6 +536,29 @@ export function PostListingForm({
               </div>
             ))}
 
+            {pendingPreviews.map((preview) => (
+              <div
+                key={preview.id}
+                className="relative size-24 overflow-hidden rounded-lg border"
+              >
+                <Image
+                  src={preview.url}
+                  alt="Compressing upload"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-black/45" />
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="animate-image-compress-sweep absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                </div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-white">
+                  <Loader2 className="size-4 animate-spin" />
+                  <span className="text-[10px] font-medium">Compressing…</span>
+                </div>
+              </div>
+            ))}
+
             {images.length < MAX_LISTING_IMAGES ? (
               <label
                 className={`flex size-24 items-center justify-center rounded-lg border border-dashed text-xs text-muted-foreground ${
@@ -540,7 +582,10 @@ export function PostListingForm({
             ) : null}
           </div>
           {isCompressing ? (
-            <p className="text-xs text-muted-foreground">Compressing your photos…</p>
+            <p className="text-xs text-muted-foreground">
+              Compressing your photo{pendingPreviews.length > 1 ? "s" : ""} — feel free to keep
+              filling out the rest of the form, they&apos;ll finish in the background.
+            </p>
           ) : null}
           {images.length > 1 ? (
             <p className="text-xs text-muted-foreground">

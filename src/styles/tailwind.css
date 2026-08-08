@@ -4,6 +4,19 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@keyframes image-compress-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-image-compress-sweep {
+  animation: image-compress-sweep 1.4s ease-in-out infinite;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
