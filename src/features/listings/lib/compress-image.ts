@@ -26,7 +26,14 @@ export async function compressListingImage(file: File): Promise<File> {
       maxSizeMB: TARGET_SIZE_MB,
       maxWidthOrHeight: MAX_DIMENSION_PX,
       useWebWorker: true,
-      preserveExif: false // we don't need camera metadata, and stripping it saves a little more
+      preserveExif: false, // we don't need camera metadata, and stripping it saves a little more
+      // By default the library's web worker fetches its own script from
+      // jsdelivr's CDN (a fresh network request, every time, for every
+      // photo) before it can start compressing — on a slow or congested
+      // mobile connection that easily dwarfs the actual compression work.
+      // Point it at our own self-hosted copy instead (public/vendor/) so
+      // the worker starts immediately from cache with no external request.
+      libURL: `${window.location.origin}/vendor/browser-image-compression.js`
     });
 
     // browser-image-compression returns a Blob, not always a File — rewrap
