@@ -154,24 +154,35 @@ export default async function HomePage() {
           </div>
 
           {listings && listings.length > 0 ? (
-            <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {listings.map((listing, index) => (
-                <ListingCard
-                  key={listing.id}
-                  id={listing.id}
-                  title={listing.title}
-                  price={listing.price}
-                  isFree={listing.is_free}
-                  condition={listing.condition}
-                  state={listing.state}
-                  lga={listing.lga}
-                  images={listing.images ?? []}
-                  isSaved={user ? savedIds.has(listing.id) : undefined}
-                  isSold={listing.is_sold}
-                  priority={index === 0}
-                />
-              ))}
-            </div>
+            <>
+              <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {listings.map((listing, index) => (
+                  <ListingCard
+                    key={listing.id}
+                    id={listing.id}
+                    title={listing.title}
+                    price={listing.price}
+                    isFree={listing.is_free}
+                    condition={listing.condition}
+                    state={listing.state}
+                    lga={listing.lga}
+                    images={listing.images ?? []}
+                    isSaved={user ? savedIds.has(listing.id) : undefined}
+                    isSold={listing.is_sold}
+                    priority={index === 0}
+                  />
+                ))}
+              </div>
+
+              <div className="mt-8 flex justify-center">
+                <Link
+                  href="/listings"
+                  className="rounded-lg border border-[#1B1F3B]/20 px-6 py-3 font-semibold text-[#1B1F3B] transition hover:bg-[#1B1F3B]/5"
+                >
+                  See more listings
+                </Link>
+              </div>
+            </>
           ) : (
             <p className="mt-8 text-[#1B1F3B]/60">
               No listings yet — be the first to{" "}
