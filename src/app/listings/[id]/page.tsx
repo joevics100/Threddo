@@ -171,7 +171,8 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
             condition: listing.condition,
             brand: listing.brand,
             category: listing.category?.name ?? null,
-            isSold: listing.is_sold
+            isSold: listing.is_sold,
+            sellerName: listing.seller?.full_name ?? null
           })}
         />
       ) : null}
