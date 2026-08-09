@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 
+import { Loader2 } from "lucide-react";
+
 import type { CategoryOption } from "@/components/shared";
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/ui";
 import {
@@ -41,11 +43,18 @@ export function ListingPreviewDialog({
   const subcategoryName = categories.find((c) => c.id === values?.subcategoryId)?.name;
 
   return (
-    <Dialog open={Boolean(values)} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={Boolean(values)} onOpenChange={(open) => !open && !isSubmitting && onClose()}>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Preview your listing</DialogTitle>
         </DialogHeader>
+
+        {isSubmitting ? (
+          <div className="flex items-center justify-center gap-2 rounded-lg bg-[#1B1F3B] px-4 py-2 text-sm font-medium text-white">
+            <Loader2 className="size-4 animate-spin" />
+            {submittingLabel} Please don&apos;t close this window.
+          </div>
+        ) : null}
 
         {values ? (
           <div className="grid gap-4">
@@ -134,8 +143,9 @@ export function ListingPreviewDialog({
             type="button"
             onClick={onConfirm}
             disabled={isSubmitting}
-            className="bg-[#E8A33D] text-[#1B1F3B] hover:bg-[#f0b563]"
+            className="gap-2 bg-[#E8A33D] text-[#1B1F3B] hover:bg-[#f0b563]"
           >
+            {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
             {isSubmitting ? submittingLabel : confirmLabel}
           </Button>
         </DialogFooter>
