@@ -24,6 +24,8 @@ export interface Database {
           whatsapp_number: string | null;
           avatar_url: string | null;
           is_verified: boolean;
+          is_banned: boolean;
+          banned_at: string | null;
           role: UserRole;
           created_at: string;
         };
@@ -34,6 +36,8 @@ export interface Database {
           whatsapp_number?: string | null;
           avatar_url?: string | null;
           is_verified?: boolean;
+          is_banned?: boolean;
+          banned_at?: string | null;
           role?: UserRole;
           created_at?: string;
         };
@@ -44,6 +48,8 @@ export interface Database {
           whatsapp_number?: string | null;
           avatar_url?: string | null;
           is_verified?: boolean;
+          is_banned?: boolean;
+          banned_at?: string | null;
           role?: UserRole;
           created_at?: string;
         };
