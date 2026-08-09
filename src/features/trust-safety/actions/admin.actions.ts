@@ -15,7 +15,7 @@ async function requireAdmin() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { supabase, error: "Log in as an admin to do this." } as const;
+    return { supabase, userId: null, error: "Log in as an admin to do this." } as const;
   }
 
   const { data: profile } = await supabase
@@ -25,10 +25,10 @@ async function requireAdmin() {
     .single();
 
   if (profile?.role !== "admin") {
-    return { supabase, error: "You don't have permission to do this." } as const;
+    return { supabase, userId: null, error: "You don't have permission to do this." } as const;
   }
 
-  return { supabase, error: null } as const;
+  return { supabase, userId: user.id, error: null } as const;
 }
 
 export async function approveListingAction(listingId: string): Promise<AdminActionResult> {
@@ -78,5 +78,37 @@ export async function resolveReportAction(reportId: string): Promise<AdminAction
   if (error) return { error: "Couldn't resolve this report." };
 
   revalidatePath("/admin/reports");
+  return {};
+}
+
+export async function setUserBannedAction(
+  userId: string,
+  banned: boolean
+): Promise<AdminActionResult> {
+  const { supabase, userId: adminId, error: authError } = await requireAdmin();
+  if (authError) return { error: authError };
+
+  if (userId === adminId) {
+    return { error: "You can't ban your own account." };
+  }
+
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .single();
+
+  if (target?.role === "admin") {
+    return { error: "Admins can't be banned from here." };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ is_banned: banned, banned_at: banned ? new Date().toISOString() : null })
+    .eq("id", userId);
+
+  if (error) return { error: `Couldn't ${banned ? "ban" : "unban"} this user.` };
+
+  revalidatePath("/admin/users");
   return {};
 }
