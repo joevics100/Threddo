@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams
 }: {
-  searchParams: Promise<{ next?: string; error?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; banned?: string }>;
 }) {
-  const { next, error } = await searchParams;
+  const { next, error, banned } = await searchParams;
 
   return (
     <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-[#FBF8F3] px-6 py-16">
@@ -30,6 +30,12 @@ export default async function LoginPage({
         {error === "oauth" ? (
           <p className="mt-4 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
             Something went wrong signing in with Google. Please try again.
+          </p>
+        ) : null}
+
+        {banned === "1" ? (
+          <p className="mt-4 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            This account has been suspended. Contact support if you think this is a mistake.
           </p>
         ) : null}
 
