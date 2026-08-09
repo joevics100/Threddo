@@ -8,5 +8,6 @@ export * from "./components/ReportModerationRow";
 export * from "./components/ReviewForm";
 export * from "./components/SellerReviews";
 export * from "./components/StarRating";
+export * from "./components/UserModerationRow";
 export * from "./constants/report-options";
 export * from "./schemas/trust-safety.schemas";
