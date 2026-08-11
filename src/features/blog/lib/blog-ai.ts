@@ -42,9 +42,18 @@ Return JSON with these fields:
 6. "tags" — up to 5 short, lowercase, kebab-case tags describing the article's topics (e.g. ["thrifting", "style-tips", "lagos"]).
 7. "content" — the SAME markdown, with ONLY the following scissors edits applied:
 
-   a. LINK CLEANUP — the source often appends bare citation-style links at the end of sentences like: "automated PDFs for Nigerian businesses. [nitda.gov](https://nitda.gov.ng/...)". These are NOT natural. For every such trailing bare-domain link:
-      - Pick at most the 5 BEST, most authoritative external links across the WHOLE article (prefer official gov sites and primary sources). Delete every other trailing bare-domain citation entirely, including any leading space or stray punctuation orphaned by the removal — but keep the surrounding sentence intact.
-      - For the kept 5, rewrite them as inline anchors integrated naturally into the nearest preceding sentence. Do this by turning a relevant NOUN PHRASE already in that sentence into the anchor text — e.g. change "automated PDFs for Nigerian businesses. [nitda.gov](https://nitda.gov.ng/x)" into "automated PDFs for [Nigerian businesses](https://nitda.gov.ng/x)." Do NOT invent new sentences or add commentary. If no reasonable noun phrase exists, drop that link too.
+   a. LINK CLEANUP — the source often has citation clutter in one of two forms:
+
+      FORM 1 — trailing bare-domain markdown links, e.g.: "automated PDFs for Nigerian businesses. [nitda.gov](https://nitda.gov.ng/...)".
+
+      FORM 2 — numbered/bracketed reference markers (very common in Perplexity exports), e.g.: "sellers who disappear after payment.[4][5]" or "a growing problem in Lagos [12]." These may or may not have a matching reference-style definition elsewhere in the document (a line like "[4]: https://example.com" or a "Sources"/"References" list at the very end).
+
+      For BOTH forms, across the WHOLE article:
+      - Pick at most the 5 BEST, most authoritative underlying links (prefer official gov sites and primary sources) — checking reference-style definitions and any end-of-article Sources/References list for the real URL behind a numbered marker.
+      - Delete every other citation marker/link entirely — the bracket numbers, the trailing bare-domain links, and any leading space or stray punctuation orphaned by the removal (e.g. "payment.[4][5]" becomes "payment." not "payment. []"). Keep the surrounding sentence intact.
+      - For the kept 5, rewrite them as inline anchors integrated naturally into the nearest preceding sentence — turn a relevant NOUN PHRASE already in that sentence into the anchor text. E.g. "automated PDFs for Nigerian businesses. [nitda.gov](https://nitda.gov.ng/x)" becomes "automated PDFs for [Nigerian businesses](https://nitda.gov.ng/x)." For a numbered marker like "a growing problem in Lagos [12]." with [12] resolving to a real URL, becomes "a growing problem in [Lagos](https://the-url)." Do NOT invent new sentences or add commentary. If no reasonable noun phrase exists, drop that link too.
+      - If a numbered marker has no resolvable URL anywhere in the document (a bare "[4]" pointing to nothing), just delete it — never leave an unresolved bracket number in the output.
+      - Always delete any standalone "Sources" / "References" / footnote-definition section at the end of the article once you've extracted what you need from it — it should never appear in the final content.
       - Internal links (relative paths, same-site) are not counted against the 5-link cap; keep them and also inline them naturally the same way if they appear as trailing bare-domain citations.
 
    b. REMOVE AI COMMENTARY — the source often contains meta commentary aimed at the human editor. Remove all of the following completely:
