@@ -80,9 +80,7 @@ export function productJsonLd(listing: ProductJsonLdInput) {
       price: listing.isFree ? "0" : String(listing.price ?? "0"),
       availability: listing.isSold ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
       // Threddo is the marketplace, not the party selling this item.
-      ...(listing.sellerName
-        ? { seller: { "@type": "Person", name: listing.sellerName } }
-        : {}),
+      ...(listing.sellerName ? { seller: { "@type": "Person", name: listing.sellerName } } : {}),
       // Reflects the individual seller's practice, not a Threddo-wide policy
       // — Threddo has no mechanism for a buyer to return an item to the
       // seller after a sale completes.

@@ -92,11 +92,7 @@ export async function setUserBannedAction(
     return { error: "You can't ban your own account." };
   }
 
-  const { data: target } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", userId)
-    .single();
+  const { data: target } = await supabase.from("profiles").select("role").eq("id", userId).single();
 
   if (target?.role === "admin") {
     return { error: "Admins can't be banned from here." };

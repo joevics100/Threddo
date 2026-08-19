@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 
-import { UserModerationRow, type UserRow } from "@/features/trust-safety/components/UserModerationRow";
+import {
+  UserModerationRow,
+  type UserRow
+} from "@/features/trust-safety/components/UserModerationRow";
 
 export default async function AdminUsersPage() {
   const supabase = await createClient();
