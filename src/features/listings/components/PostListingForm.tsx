@@ -537,10 +537,7 @@ export function PostListingForm({
             ))}
 
             {pendingPreviews.map((preview) => (
-              <div
-                key={preview.id}
-                className="relative size-24 overflow-hidden rounded-lg border"
-              >
+              <div key={preview.id} className="relative size-24 overflow-hidden rounded-lg border">
                 <Image
                   src={preview.url}
                   alt="Compressing upload"
