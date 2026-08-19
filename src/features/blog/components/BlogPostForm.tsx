@@ -132,10 +132,6 @@ export function BlogPostForm({ mode, defaultValues, onSubmit }: BlogPostFormProp
     });
   }
 
-  // react-hook-form's watch() returns a subscription function that the
-  // React Compiler can't safely memoize — this is expected and the
-  // compiler already handles it correctly by skipping memoization here.
-  // eslint-disable-next-line react-hooks/incompatible-library
   const coverImageUrl = form.watch("coverImageUrl");
 
   return (
