@@ -36,7 +36,7 @@ import {
   MAX_LISTING_IMAGES,
   SUITABLE_FOR_OPTIONS
 } from "@/features/listings/constants/listing-options";
-import { compressListingImage } from "@/features/listings/lib/compress-image";
+import { compressListingImage, HeicConversionError } from "@/features/listings/lib/compress-image";
 import { uploadListingImages } from "@/features/listings/lib/upload-listing-images";
 import {
   listingFormSchema,
@@ -249,11 +249,38 @@ export function PostListingForm({
     setIsCompressing(true);
     // Phone photos are routinely 3-8MB — compress before the size check
     // instead of rejecting them outright, so people don't have to go
-    // find a photo editor just to post a listing.
-    const compressed = await Promise.all(incoming.map(compressListingImage));
+    // find a photo editor just to post a listing. allSettled (not all) so
+    // one photo that can't be processed — almost always a HEIC file that
+    // failed to convert — doesn't sink the rest of the batch.
+    const results = await Promise.allSettled(incoming.map(compressListingImage));
     setIsCompressing(false);
     pending.forEach((p) => URL.revokeObjectURL(p.url));
     setPendingPreviews((prev) => prev.filter((p) => !pending.some((done) => done.id === p.id)));
+
+    const compressed: File[] = [];
+    const failedNames: string[] = [];
+    results.forEach((result) => {
+      if (result.status === "fulfilled") {
+        compressed.push(result.value);
+      } else if (result.reason instanceof HeicConversionError) {
+        failedNames.push(result.reason.fileName);
+      } else {
+        // Shouldn't happen — compressListingImage only rejects with
+        // HeicConversionError, everything else has its own fallback. Still
+        // worth reporting rather than silently dropping the photo.
+        failedNames.push("a photo");
+      }
+    });
+
+    if (failedNames.length > 0) {
+      toast.error(
+        failedNames.length === 1
+          ? `Couldn't process ${failedNames[0]} — try taking a new photo, or convert it to JPEG first.`
+          : `Couldn't process ${failedNames.length} photos — try taking new photos, or convert them to JPEG first.`
+      );
+    }
+
+    if (compressed.length === 0) return;
 
     const tooLarge = compressed.find((file) => file.size > MAX_IMAGE_SIZE_BYTES);
     if (tooLarge) {

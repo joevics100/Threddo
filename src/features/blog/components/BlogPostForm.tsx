@@ -20,7 +20,7 @@ import {
 import { getBlogCoverUploadUrl } from "@/features/blog/actions/blog-upload.actions";
 import { extractBlogPostContentAction } from "@/features/blog/actions/blog.actions";
 import { blogPostSchema, slugify, type BlogPostInput } from "@/features/blog/schemas/blog.schemas";
-import { compressListingImage } from "@/features/listings/lib/compress-image";
+import { compressListingImage, HeicConversionError } from "@/features/listings/lib/compress-image";
 
 interface BlogPostFormProps {
   mode: "create" | "edit";
@@ -84,8 +84,12 @@ export function BlogPostForm({ mode, defaultValues, onSubmit }: BlogPostFormProp
         return;
       }
       form.setValue("coverImageUrl", publicUrl, { shouldValidate: true });
-    } catch {
-      setFormError("Couldn't upload the cover image.");
+    } catch (err) {
+      setFormError(
+        err instanceof HeicConversionError
+          ? `Couldn't convert ${err.fileName} — try a different photo, or convert it to JPEG first.`
+          : "Couldn't upload the cover image."
+      );
     } finally {
       setIsUploadingCover(false);
     }

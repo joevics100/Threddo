@@ -53,48 +53,76 @@ function isHeic(file: File): boolean {
 }
 
 /**
+ * Thrown when a HEIC/HEIF file can't be converted after retrying — the
+ * caller can catch this specifically to drop just that one photo from the
+ * batch with a clear message, instead of silently uploading a still-HEIC
+ * file that the server will reject anyway.
+ */
+export class HeicConversionError extends Error {
+  constructor(public fileName: string) {
+    super(`Couldn't convert ${fileName}`);
+    this.name = "HeicConversionError";
+  }
+}
+
+/**
  * Converts a HEIC/HEIF file to JPEG in the browser. Dynamically imported —
  * heic2any bundles a full WASM HEIC decoder (~1.3MB), and the large majority
  * of uploads are already JPEG/PNG straight off an Android phone or a
  * downloaded image, so there's no reason to ship that to everyone.
+ *
+ * Retries once on failure/timeout before giving up — heic2any runs the
+ * actual decode in a Web Worker it creates itself, and a one-off worker
+ * hiccup (rather than a systemic one) is common enough on mobile browsers
+ * that a fresh attempt often just works.
  */
 async function convertHeicToJpeg(file: File): Promise<File> {
   const heic2any = (await import("heic2any")).default;
-  const result = await withTimeout(
-    heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 }),
-    20_000
-  );
-  // heic2any's types allow returning an array (only relevant when the input
-  // is a multi-image HEIC sequence, e.g. Live Photos) — we only ever pass one
-  // still image in, so it's always a single Blob in practice.
-  const blob = Array.isArray(result) ? result[0] : result;
-  const newName = file.name.replace(/\.(heic|heif)$/i, ".jpg");
-  return new File([blob], newName, { type: "image/jpeg" });
+
+  async function attempt(): Promise<File> {
+    const result = await withTimeout(
+      heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 }),
+      15_000
+    );
+    // heic2any's types allow returning an array (only relevant when the
+    // input is a multi-image HEIC sequence, e.g. Live Photos) — we only
+    // ever pass one still image in, so it's always a single Blob in
+    // practice.
+    const blob = Array.isArray(result) ? result[0] : result;
+    const newName = file.name.replace(/\.(heic|heif)$/i, ".jpg");
+    return new File([blob], newName, { type: "image/jpeg" });
+  }
+
+  try {
+    return await attempt();
+  } catch {
+    try {
+      return await attempt();
+    } catch {
+      throw new HeicConversionError(file.name);
+    }
+  }
 }
 
 /**
  * Compresses a single image client-side before upload — phone cameras
  * routinely produce 3-8MB photos, well past what a listing photo needs.
  * Resizes to a max of 1600px on the longest side and re-encodes at a
- * quality that targets ~180KB. Falls back to the original file if
- * compression fails, or takes too long, for any reason (corrupt image,
- * unsupported format, a worker that never reports back, etc.) rather than
- * blocking the upload entirely.
+ * quality that targets ~180KB.
+ *
+ * For HEIC/HEIF input, conversion failure is NOT swallowed — it throws
+ * HeicConversionError, since there's no safe fallback (the server can't
+ * accept raw HEIC, so silently passing it through would just trade an
+ * infinite hang for a delayed, confusing rejection later). For every other
+ * failure (a format the browser can already display, so the original file
+ * is a perfectly valid upload as-is), this falls back to the
+ * pre-compression file rather than blocking the upload entirely.
  */
 export async function compressListingImage(file: File): Promise<File> {
   let workingFile = file;
 
   if (isHeic(workingFile)) {
-    try {
-      workingFile = await convertHeicToJpeg(workingFile);
-    } catch {
-      // If decoding genuinely fails (corrupt file, an HEIC variant the
-      // decoder doesn't support, or it simply timed out) there's nothing
-      // more we can do client-side — let it fall through to the server,
-      // which will reject unconverted HEIC with a clear "not a supported
-      // image type" message rather than a silent failure here.
-      return workingFile;
-    }
+    workingFile = await convertHeicToJpeg(workingFile);
   }
 
   // Nothing to do for already-small files — skip the (not free) compression
