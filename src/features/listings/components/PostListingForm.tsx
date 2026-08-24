@@ -37,21 +37,29 @@ import {
   SUITABLE_FOR_OPTIONS
 } from "@/features/listings/constants/listing-options";
 import { compressListingImage, HeicConversionError } from "@/features/listings/lib/compress-image";
+import { fileToBase64 } from "@/features/listings/lib/file-to-base64";
 import { uploadListingImages } from "@/features/listings/lib/upload-listing-images";
 import {
   listingFormSchema,
   withSubcategoryRequirement,
   type ListingFormInput
 } from "@/features/listings/schemas/listing.schemas";
+import { createListingForUserAction } from "@/features/trust-safety/actions/admin-create-listing.actions";
 
 interface PostListingFormProps {
   categories: CategoryOption[];
   defaultWhatsappNumber: string;
-  /** "edit" pre-fills the form from an existing listing and saves in place instead of creating a new one. */
-  mode?: "create" | "edit";
+  /**
+   * "edit" pre-fills the form from an existing listing and saves in place.
+   * "admin-create" is for staff creating a listing on behalf of someone
+   * else — pass `adminTargetUserId` alongside it.
+   */
+  mode?: "create" | "edit" | "admin-create";
   listingId?: string;
   initialValues?: ListingFormInput;
   initialImageUrls?: string[];
+  /** Required when mode is "admin-create" — whose account the listing belongs to. */
+  adminTargetUserId?: string;
 }
 
 /** One photo slot — either an already-uploaded URL or a freshly-picked file. */
@@ -60,19 +68,6 @@ type ImageItem =
   | { kind: "new"; file: File; previewUrl: string };
 
 const DRAFT_STORAGE_KEY = "threddo:draft-listing";
-
-/** Reads a File as base64 (no data-URL prefix) for sending to the Gemini analysis action. */
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.slice(result.indexOf(",") + 1));
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
 
 const DEFAULT_VALUES = (defaultWhatsappNumber: string): ListingFormInput => ({
   title: "",
@@ -104,9 +99,11 @@ export function PostListingForm({
   mode = "create",
   listingId,
   initialValues,
-  initialImageUrls
+  initialImageUrls,
+  adminTargetUserId
 }: PostListingFormProps) {
   const isEdit = mode === "edit";
+  const isAdminCreate = mode === "admin-create";
 
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
@@ -165,21 +162,25 @@ export function PostListingForm({
     return () => pendingPreviewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
   }, []);
 
-  // ── Draft (create mode only — saved locally in this browser; photos can't
-  // be persisted this way, so only the text fields/selections are saved) ────
+  // ── Draft (self-serve create mode only — saved locally in this browser;
+  // photos can't be persisted this way, so only the text fields/selections
+  // are saved. Skipped for edit and admin-create — an admin creating a
+  // listing for someone else on a shared/staff device shouldn't leave a
+  // draft behind that autofills next time, or collide with a different
+  // in-progress admin-create session.) ──────────────────────────────────
   useEffect(() => {
-    if (isEdit) return;
+    if (mode !== "create") return;
     try {
       const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
       if (raw) setDraftSavedAt((JSON.parse(raw) as { savedAt: string }).savedAt);
     } catch {
       // Corrupt or inaccessible storage — ignore, just don't offer a draft.
     }
-  }, [isEdit]);
+  }, [mode]);
 
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (isEdit) return;
+    if (mode !== "create") return;
     const subscription = form.watch((values) => {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
       draftTimerRef.current = setTimeout(() => {
@@ -198,7 +199,7 @@ export function PostListingForm({
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEdit]);
+  }, [mode]);
 
   function restoreDraft() {
     try {
@@ -448,11 +449,16 @@ export function PostListingForm({
     startTransition(async () => {
       const result = isEdit
         ? await updateListingAction(listingId!, { ...previewValues, images: imageUrls })
-        : await createListingAction(
-            { ...previewValues, images: imageUrls },
-            { syncNumberToProfile: !useDifferentNumber }
-          );
-      // Both actions redirect on success, so reaching here means it failed.
+        : isAdminCreate
+          ? await createListingForUserAction(adminTargetUserId!, {
+              ...previewValues,
+              images: imageUrls
+            })
+          : await createListingAction(
+              { ...previewValues, images: imageUrls },
+              { syncNumberToProfile: !useDifferentNumber }
+            );
+      // All three actions redirect on success, so reaching here means it failed.
       if (result?.error) {
         setFormError(result.error);
         setPreviewValues(null);
@@ -619,7 +625,7 @@ export function PostListingForm({
             </p>
           ) : null}
           {imageError ? <p className="text-sm text-destructive">{imageError}</p> : null}
-          {!isEdit && images[0]?.kind === "new" ? (
+          {mode !== "edit" && images[0]?.kind === "new" ? (
             <Button
               type="button"
               variant="outline"

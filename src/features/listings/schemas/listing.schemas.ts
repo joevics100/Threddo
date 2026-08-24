@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const listingFields = {
+export const listingFields = {
   title: z.string().trim().min(3, "Title must be at least 3 characters").max(120),
   description: z
     .string()
@@ -43,7 +43,9 @@ const listingFields = {
   })
 };
 
-function withPriceRefinement<T extends z.ZodType<{ isFree: boolean; price?: string }>>(schema: T) {
+export function withPriceRefinement<T extends z.ZodType<{ isFree: boolean; price?: string }>>(
+  schema: T
+) {
   return schema.refine((data) => data.isFree || (!!data.price && Number(data.price) > 0), {
     message: "Enter a price, or check \u201cI want to donate this item\u201d",
     path: ["price"]

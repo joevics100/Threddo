@@ -40,6 +40,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Link href="/admin/blog" className="text-sm font-medium text-[#1B1F3B] hover:underline">
           Blog
         </Link>
+        <Link
+          href="/admin/listings/new"
+          className="text-sm font-medium text-[#1B1F3B] hover:underline"
+        >
+          Create for user
+        </Link>
       </nav>
 
       <div className="mt-8">{children}</div>

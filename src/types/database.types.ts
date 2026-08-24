@@ -115,6 +115,7 @@ export interface Database {
           allow_calls: boolean;
           whatsapp_number: string | null;
           view_count: number;
+          created_by_admin_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -145,6 +146,7 @@ export interface Database {
           allow_calls?: boolean;
           whatsapp_number?: string | null;
           view_count?: number;
+          created_by_admin_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -175,6 +177,7 @@ export interface Database {
           allow_calls?: boolean;
           whatsapp_number?: string | null;
           view_count?: number;
+          created_by_admin_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
