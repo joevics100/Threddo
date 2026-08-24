@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+
+import { Layers } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,6 +38,14 @@ export default async function PostListingPage() {
       <p className="mt-1 text-black/60">
         Listings are reviewed before they go live — usually within a day.
       </p>
+
+      <Link
+        href="/post/bulk"
+        className="mt-4 flex items-center gap-2 rounded-lg border border-[#E8A33D]/40 bg-[#E8A33D]/10 p-3 text-sm font-medium text-[#8a5a1a] hover:bg-[#E8A33D]/20"
+      >
+        <Layers className="size-4 shrink-0" />
+        Got several items? List them all at once →
+      </Link>
 
       <div className="mt-8">
         <PostListingForm
