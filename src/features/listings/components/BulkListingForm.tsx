@@ -68,6 +68,7 @@ export function BulkListingForm({ categories, defaultWhatsappNumber }: BulkListi
   const router = useRouter();
   const [itemMeta, setItemMeta] = useState<ItemMeta[]>([]);
   const [analyzingIndices, setAnalyzingIndices] = useState<Set<number>>(new Set());
+  const [multiItemIndices, setMultiItemIndices] = useState<Set<number>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categoryIdsRequiringSubcategory = new Set(
@@ -100,6 +101,11 @@ export function BulkListingForm({ categories, defaultWhatsappNumber }: BulkListi
 
   async function analyzeItem(index: number, file: File) {
     setAnalyzingIndices((prev) => new Set(prev).add(index));
+    setMultiItemIndices((prev) => {
+      const next = new Set(prev);
+      next.delete(index);
+      return next;
+    });
     try {
       const base64 = await fileToBase64(file);
       const result = await analyzeListingImageAction(base64, file.type, categories);
@@ -124,6 +130,9 @@ export function BulkListingForm({ categories, defaultWhatsappNumber }: BulkListi
       if (s.material) form.setValue(`${path}.material`, s.material);
       form.setValue(`${path}.condition`, s.condition);
       form.setValue(`${path}.suitableFor`, s.suitableFor);
+      if (s.showsMultipleItems) {
+        setMultiItemIndices((prev) => new Set(prev).add(index));
+      }
     } finally {
       setAnalyzingIndices((prev) => {
         const next = new Set(prev);
@@ -175,6 +184,11 @@ export function BulkListingForm({ categories, defaultWhatsappNumber }: BulkListi
       const next = [...prev];
       const [removed] = next.splice(index, 1);
       if (removed) URL.revokeObjectURL(removed.previewUrl);
+      return next;
+    });
+    setMultiItemIndices((prev) => {
+      const next = new Set(prev);
+      next.delete(index);
       return next;
     });
   }
@@ -367,6 +381,7 @@ export function BulkListingForm({ categories, defaultWhatsappNumber }: BulkListi
                 categories={categories}
                 previewUrl={itemMeta[index]?.previewUrl ?? ""}
                 isAnalyzing={analyzingIndices.has(index)}
+                showsMultipleItems={multiItemIndices.has(index)}
                 onRemove={() => removeItem(index)}
                 onReanalyze={() => {
                   const meta = itemMeta[index];

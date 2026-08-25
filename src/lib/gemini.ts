@@ -30,6 +30,15 @@ export interface AiListingSuggestion {
   material: string | null;
   condition: "new" | "like_new" | "gently_used" | "needs_fixing";
   suitableFor: "unisex" | "male" | "female" | "kids";
+  /**
+   * True when the photo shows a rack, table, pile, or display of several
+   * distinct items (e.g. a sunglasses stand, a shoe rack) rather than one
+   * item being sold. The title/description still describe a single
+   * representative item in that case (see buildPrompt) — this flag exists
+   * so the UI can warn the seller that this photo probably needs to become
+   * several separate listings with individual photos, not one.
+   */
+  showsMultipleItems: boolean;
 }
 
 function buildResponseSchema(categories: CategoryOption[]) {
@@ -47,9 +56,10 @@ function buildResponseSchema(categories: CategoryOption[]) {
       color: { type: "string" },
       material: { type: "string", enum: MATERIAL_OPTIONS.map((o) => o.value) },
       condition: { type: "string", enum: ["new", "like_new", "gently_used", "needs_fixing"] },
-      suitableFor: { type: "string", enum: ["unisex", "male", "female", "kids"] }
+      suitableFor: { type: "string", enum: ["unisex", "male", "female", "kids"] },
+      showsMultipleItems: { type: "boolean" }
     },
-    required: ["title", "description", "condition", "suitableFor"]
+    required: ["title", "description", "condition", "suitableFor", "showsMultipleItems"]
   };
 }
 
@@ -64,10 +74,15 @@ function buildPrompt(categories: CategoryOption[]): string {
 
   return `You are helping a seller in Nigeria list a secondhand fashion item on Threddo, a marketplace for clothes, shoes, bags, hair, and accessories.
 
-Look at the photo and identify the single most prominent item for sale. Respond with ONLY a JSON object (no markdown, no commentary) matching this shape:
+First, check whether the photo shows ONE item for sale, or a RACK, TABLE, SHELF, or PILE displaying several distinct items (e.g. a sunglasses stand with many different pairs, a shoe rack, a table of folded shirts in different colors). This matters a lot:
+
+- If it's a display of several items: set "showsMultipleItems" to true. Still write the title and description as if describing ONE typical/representative item from that display — e.g. "Fashion Sunglasses", not "Assorted Sunglasses Display" or "Sunglasses Collection". NEVER use words like "assorted", "display", "collection", "various", "multiple", or "selection" in the title — the title must read like the name of a single product someone would buy, because each item in the photo will likely end up listed and sold separately, not as a single lot.
+- If it's one item (or one outfit/set worn together): set "showsMultipleItems" to false and describe that item normally.
+
+Respond with ONLY a JSON object (no markdown, no commentary) matching this shape:
 
 {
-  "title": "short, specific title, max 8 words, e.g. 'Blue Denim Jacket' or 'Nike Air Max Sneakers'",
+  "title": "short, specific title, max 8 words, e.g. 'Blue Denim Jacket' or 'Nike Air Max Sneakers' — always naming ONE product, never the scene or display it's part of",
   "description": "A detailed, honest description, roughly 5-8 sentences (about 120-180 words). Cover: what the item is, its color and pattern, style/silhouette and fit, material or texture if visible, any notable design details (buttons, zippers, prints, stitching, hardware, logos), and a couple of ideas for how it could be worn or styled. Write in a natural, appealing tone a buyer would enjoy reading — not a dry bullet list. Do NOT claim a condition like 'brand new' or 'excellent condition' unless clearly evidenced (e.g. tags still attached, obvious packaging) — the seller will confirm the actual condition separately.",
   "categorySlug": "the closest matching slug from the list below, or omit if genuinely unclear",
   "subcategorySlug": "the closest matching subcategory slug under that category, or omit if unclear",
@@ -75,13 +90,14 @@ Look at the photo and identify the single most prominent item for sale. Respond 
   "color": "the item's primary color, or omit if unclear",
   "material": "the closest matching material from this exact list: ${MATERIAL_OPTIONS.map((o) => o.value).join(", ")} — or omit if none fit well",
   "condition": "your best visual guess: one of new, like_new, gently_used, needs_fixing — default to gently_used if you can't tell",
-  "suitableFor": "one of unisex, male, female, kids — your best guess from the item's style, default to unisex if unclear"
+  "suitableFor": "one of unisex, male, female, kids — your best guess from the item's style, default to unisex if unclear",
+  "showsMultipleItems": "true if this photo shows a rack/table/pile/display of several distinct items rather than one item for sale, false otherwise"
 }
 
 Valid categories and subcategories:
 ${categoryList}
 
-If the photo doesn't clearly show a sellable fashion item, still return your best-effort JSON with an empty title and a description of what you actually see.`;
+If the photo doesn't clearly show a sellable fashion item, still return your best-effort JSON with an empty title, "showsMultipleItems": false, and a description of what you actually see.`;
 }
 
 interface GeminiResponse {
@@ -144,7 +160,8 @@ async function callGemini(
     color: parsed.color ?? null,
     material: parsed.material ?? null,
     condition: parsed.condition ?? "gently_used",
-    suitableFor: parsed.suitableFor ?? "unisex"
+    suitableFor: parsed.suitableFor ?? "unisex",
+    showsMultipleItems: parsed.showsMultipleItems ?? false
   };
 }
 

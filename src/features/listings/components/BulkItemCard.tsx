@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-import { Loader2, Sparkles, X } from "lucide-react";
+import { Loader2, Sparkles, TriangleAlert, X } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { CategorySelect, type CategoryOption } from "@/components/shared";
@@ -19,6 +19,8 @@ interface BulkItemCardProps {
   categories: CategoryOption[];
   previewUrl: string;
   isAnalyzing: boolean;
+  /** AI flagged this photo as showing a rack/table/pile of several distinct items, not one. */
+  showsMultipleItems: boolean;
   onRemove: () => void;
   onReanalyze: () => void;
 }
@@ -35,6 +37,7 @@ export function BulkItemCard({
   categories,
   previewUrl,
   isAnalyzing,
+  showsMultipleItems,
   onRemove,
   onReanalyze
 }: BulkItemCardProps) {
@@ -92,6 +95,17 @@ export function BulkItemCard({
         <span className="text-xs font-semibold tracking-wide text-[#1B1F3B]/40 uppercase">
           Item {index + 1}
         </span>
+
+        {showsMultipleItems ? (
+          <div className="flex items-start gap-2 rounded-lg border border-amber-400/40 bg-amber-50 p-2.5 text-xs text-amber-900">
+            <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+            <span>
+              This photo looks like it shows several different items (like a rack or display) —
+              we&apos;ve named it as one for now, but you&apos;ll get better results listing each
+              one separately with its own photo.
+            </span>
+          </div>
+        ) : null}
 
         <div className="grid gap-1">
           <input

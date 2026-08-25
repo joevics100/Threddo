@@ -358,9 +358,16 @@ export function PostListingForm({
       form.setValue("condition", s.condition, { shouldValidate: true });
       form.setValue("suitableFor", s.suitableFor, { shouldValidate: true });
 
-      toast.success(
-        "Filled in details from your photo — have a look and edit anything that's off."
-      );
+      if (s.showsMultipleItems) {
+        toast.warning(
+          "This photo looks like it shows several different items (like a rack or display) — for best results, list each one separately with its own photo.",
+          { duration: 8000 }
+        );
+      } else {
+        toast.success(
+          "Filled in details from your photo — have a look and edit anything that's off."
+        );
+      }
     } catch {
       toast.error("AI parsing didn't work — please fill out the form.");
     } finally {
