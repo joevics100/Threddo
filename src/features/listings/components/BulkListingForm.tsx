@@ -28,6 +28,7 @@ import {
   withSubcategoryRequirement,
   type ListingInput
 } from "@/features/listings/schemas/listing.schemas";
+import { createListingsBulkForUserAction } from "@/features/trust-safety/actions/admin-bulk-listing.actions";
 
 export type BulkFormValues = {
   shared: BulkSharedInput;
@@ -62,9 +63,17 @@ const EMPTY_ITEM: BulkItemInput = {
 interface BulkListingFormProps {
   categories: CategoryOption[];
   defaultWhatsappNumber: string;
+  /** "admin-create" is for staff adding several items on behalf of someone else — pass adminTargetUserId alongside it. */
+  mode?: "self" | "admin-create";
+  adminTargetUserId?: string;
 }
 
-export function BulkListingForm({ categories, defaultWhatsappNumber }: BulkListingFormProps) {
+export function BulkListingForm({
+  categories,
+  defaultWhatsappNumber,
+  mode = "self",
+  adminTargetUserId
+}: BulkListingFormProps) {
   const router = useRouter();
   const [itemMeta, setItemMeta] = useState<ItemMeta[]>([]);
   const [analyzingIndices, setAnalyzingIndices] = useState<Set<number>>(new Set());
@@ -225,7 +234,12 @@ export function BulkListingForm({ categories, defaultWhatsappNumber }: BulkListi
 
       const bulkResult =
         validItems.length > 0
-          ? await createListingsBulkAction(validItems.map((v) => v.listingInput))
+          ? mode === "admin-create"
+            ? await createListingsBulkForUserAction(
+                adminTargetUserId!,
+                validItems.map((v) => v.listingInput)
+              )
+            : await createListingsBulkAction(validItems.map((v) => v.listingInput))
           : { successCount: 0, errors: [] };
 
       const failedOriginalIndices = new Set<number>();
@@ -240,7 +254,11 @@ export function BulkListingForm({ categories, defaultWhatsappNumber }: BulkListi
 
       if (failedOriginalIndices.size === 0) {
         toast.success(`Posted ${succeededCount} listing${succeededCount === 1 ? "" : "s"}!`);
-        router.push("/dashboard/listings");
+        router.push(
+          mode === "admin-create"
+            ? `/admin/listings/new?userId=${adminTargetUserId}&created=${succeededCount}`
+            : "/dashboard/listings"
+        );
         return;
       }
 

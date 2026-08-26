@@ -41,7 +41,8 @@ export default async function AdminCreateListingPage({
 
       {created ? (
         <p className="rounded-lg border border-emerald-500/30 bg-emerald-50 p-3 text-sm text-emerald-800">
-          Listing created and published — add another for the same person, or pick someone else.
+          {Number(created) > 1 ? `${created} listings` : "Listing"} created and published — add more
+          for the same person, or pick someone else.
         </p>
       ) : null}
 
