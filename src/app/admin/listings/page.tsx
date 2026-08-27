@@ -26,13 +26,19 @@ export default async function AdminListingsPage({ searchParams }: AdminListingsP
     : "pending";
 
   const supabase = await createClient();
-  const { data: listings } = await supabase
-    .from("listings")
-    .select(
-      "id, title, price, is_free, condition, state, lga, images, created_at, is_sold, category:categories!listings_category_id_fkey(name), seller:profiles!listings_user_id_fkey(full_name)"
-    )
-    .eq("status", status)
-    .order("created_at", { ascending: false });
+  const [{ data: listings }, { data: users }] = await Promise.all([
+    supabase
+      .from("listings")
+      .select(
+        "id, title, price, is_free, condition, state, lga, images, created_at, is_sold, category:categories!listings_category_id_fkey(name), seller:profiles!listings_user_id_fkey(full_name)"
+      )
+      .eq("status", status)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("profiles")
+      .select("id, full_name, avatar_url, whatsapp_number, is_banned")
+      .order("full_name")
+  ]);
 
   const rows: ModerationListing[] = (listings ?? []).map((l) => ({
     id: l.id,
@@ -70,7 +76,12 @@ export default async function AdminListingsPage({ searchParams }: AdminListingsP
       <div className="mt-6 grid gap-3">
         {rows.length > 0 ? (
           rows.map((listing) => (
-            <ListingModerationRow key={listing.id} listing={listing} status={status} />
+            <ListingModerationRow
+              key={listing.id}
+              listing={listing}
+              status={status}
+              users={users ?? []}
+            />
           ))
         ) : (
           <p className="text-sm text-black/50">No {status} listings.</p>

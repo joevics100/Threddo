@@ -66,6 +66,44 @@ export async function rejectListingAction(
   return {};
 }
 
+/**
+ * Reassigns an existing listing (any status, admin's own or anyone else's)
+ * to a different user. Used e.g. when an admin published something under
+ * their own account and later wants the actual seller to own it. Doesn't
+ * touch status — a transferred listing stays exactly as approved/pending/
+ * rejected as it was; admins can already change status separately via
+ * approve/reject.
+ */
+export async function transferListingAction(
+  listingId: string,
+  targetUserId: string
+): Promise<AdminActionResult> {
+  const { supabase, error: authError } = await requireAdmin();
+  if (authError) return { error: authError };
+
+  const { data: targetProfile } = await supabase
+    .from("profiles")
+    .select("id, is_banned")
+    .eq("id", targetUserId)
+    .single();
+
+  if (!targetProfile) return { error: "Couldn't find that user." };
+  if (targetProfile.is_banned) {
+    return { error: "This user is banned — can't transfer a listing to them." };
+  }
+
+  const { error } = await supabase
+    .from("listings")
+    .update({ user_id: targetUserId })
+    .eq("id", listingId);
+
+  if (error) return { error: "Couldn't transfer this listing." };
+
+  revalidatePath("/admin/listings");
+  revalidatePath(`/listings/${listingId}`);
+  return {};
+}
+
 export async function resolveReportAction(reportId: string): Promise<AdminActionResult> {
   const { supabase, error: authError } = await requireAdmin();
   if (authError) return { error: authError };

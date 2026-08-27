@@ -7,6 +7,7 @@ export * from "./components/AdminCreateListingForm";
 export * from "./components/AdminUserPicker";
 export * from "./components/EscrowDialog";
 export * from "./components/ListingModerationRow";
+export * from "./components/TransferListingDialog";
 export * from "./components/ReportListingDialog";
 export * from "./components/ReportModerationRow";
 export * from "./components/ReviewForm";

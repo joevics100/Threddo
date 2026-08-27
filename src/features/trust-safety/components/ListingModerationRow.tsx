@@ -13,6 +13,8 @@ import {
   approveListingAction,
   rejectListingAction
 } from "@/features/trust-safety/actions/admin.actions";
+import type { AdminPickableUser } from "@/features/trust-safety/components/AdminUserPicker";
+import { TransferListingDialog } from "@/features/trust-safety/components/TransferListingDialog";
 
 export interface ModerationListing {
   id: string;
@@ -32,10 +34,12 @@ export interface ModerationListing {
 
 export function ListingModerationRow({
   listing,
-  status
+  status,
+  users
 }: {
   listing: ModerationListing;
   status: "pending" | "approved" | "rejected";
+  users: AdminPickableUser[];
 }) {
   const [isPending, startTransition] = useTransition();
   const [showRejectInput, setShowRejectInput] = useState(false);
@@ -154,6 +158,16 @@ export function ListingModerationRow({
             {status === "approved" ? (
               <MarkSoldButton listingId={listing.id} isSold={listing.is_sold} />
             ) : null}
+            <TransferListingDialog
+              listingId={listing.id}
+              currentSellerName={listing.seller_name}
+              users={users}
+              trigger={
+                <Button type="button" size="sm" variant="outline">
+                  Transfer
+                </Button>
+              }
+            />
           </div>
         )}
       </div>
