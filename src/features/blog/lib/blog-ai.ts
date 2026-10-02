@@ -67,6 +67,8 @@ Return JSON with these fields:
 
    d. Do NOT change any other wording. If a paragraph has no defects, return it verbatim.
 
+   e. Do NOT include a header at the start of "content" — the H1 title belongs only in the "title" field, so begin "content" directly with the first paragraph.
+
 CONTENT:
 {{CONTENT}}`;
 
