@@ -33,6 +33,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5810768954582763"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen w-full flex-col overflow-x-hidden pb-16 antialiased sm:pb-0`}
       >
