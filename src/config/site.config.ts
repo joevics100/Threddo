@@ -8,6 +8,8 @@ export const siteConfig = {
     twitter: "",
     instagram: ""
   },
+  // General support contact (same admin WhatsApp line used for escrow).
+  supportWhatsAppLink: "https://wa.me/2349112773159",
   // Admin WhatsApp contact for starting an escrow transaction.
   escrowSupportWhatsAppLink:
     "https://wa.me/2349112773159?text=" +

@@ -82,7 +82,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           .neq("id", post.id)
           .overlaps("tags", post.tags)
           .order("published_at", { ascending: false })
-          .limit(3)
+          .limit(6)
       : { data: [] };
 
   const authorName = post.author?.full_name || siteConfig.name;
@@ -199,7 +199,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <Link href="/post" className="font-semibold text-[#E8A33D] hover:underline">
             Post your first listing
           </Link>{" "}
-          — it only takes a couple of minutes.
+          — it only takes a couple of minutes. Or{" "}
+          <Link href="/listings" className="font-semibold text-[#E8A33D] hover:underline">
+            browse listings near you
+          </Link>
+          .
         </p>
       </div>
     </main>

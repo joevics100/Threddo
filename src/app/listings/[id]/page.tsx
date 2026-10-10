@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ShareButton } from "@/components/shared";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { ListingCard } from "@/components/shared/ListingCard";
+import { ListingDetailSections } from "@/features/listings/components/ListingDetailSections";
 import { ListingImageGallery } from "@/features/listings/components/ListingImageGallery";
 import { SaveButton } from "@/features/listings/components/SaveButton";
 import {
@@ -286,6 +287,8 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
               {listing.description}
             </p>
           ) : null}
+
+          <ListingDetailSections sections={listing.detail_sections} />
 
           <div className="mt-6">
             <SellerCard

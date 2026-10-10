@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { generateAndSaveListingSections } from "@/features/listings/lib/save-listing-sections";
 import { listingSchema, type ListingInput } from "@/features/listings/schemas/listing.schemas";
 import { requireAdmin } from "@/features/trust-safety/actions/admin.actions";
 
@@ -51,36 +52,44 @@ export async function createListingForUserAction(
 
   const data = parsed.data;
 
-  const { error: insertError } = await supabase.from("listings").insert({
-    user_id: targetUserId,
-    created_by_admin_id: adminId,
-    category_id: data.subcategoryId ?? data.categoryId,
-    title: data.title,
-    description: data.description,
-    price: data.isFree ? null : Number(data.price),
-    is_free: data.isFree,
-    is_negotiable: !data.isFree && data.isNegotiable,
-    condition: data.condition,
-    size: data.size || null,
-    quantity: data.quantity,
-    suitable_for: data.suitableFor,
-    brand: data.brand || null,
-    color: data.color || null,
-    material: data.material || null,
-    state: data.state,
-    lga: data.lga,
-    town: data.town || null,
-    delivery_method: data.deliveryMethod,
-    images: data.images,
-    allow_calls: data.allowCalls,
-    whatsapp_number: data.whatsappNumber,
-    // An admin creating the listing directly IS the review step — no
-    // reason to route it back through the approval queue to themselves.
-    status: "approved"
-  });
+  const { data: created, error: insertError } = await supabase
+    .from("listings")
+    .insert({
+      user_id: targetUserId,
+      created_by_admin_id: adminId,
+      category_id: data.subcategoryId ?? data.categoryId,
+      title: data.title,
+      description: data.description,
+      price: data.isFree ? null : Number(data.price),
+      is_free: data.isFree,
+      is_negotiable: !data.isFree && data.isNegotiable,
+      condition: data.condition,
+      size: data.size || null,
+      quantity: data.quantity,
+      suitable_for: data.suitableFor,
+      brand: data.brand || null,
+      color: data.color || null,
+      material: data.material || null,
+      state: data.state,
+      lga: data.lga,
+      town: data.town || null,
+      delivery_method: data.deliveryMethod,
+      images: data.images,
+      allow_calls: data.allowCalls,
+      whatsapp_number: data.whatsappNumber,
+      // An admin creating the listing directly IS the review step — no
+      // reason to route it back through the approval queue to themselves.
+      status: "approved"
+    })
+    .select("id")
+    .single();
 
   if (insertError) {
     return { error: "Couldn't save the listing. Please try again." };
+  }
+
+  if (created) {
+    await generateAndSaveListingSections(supabase, created.id);
   }
 
   // Land back on the form with the same user pre-selected — staff are

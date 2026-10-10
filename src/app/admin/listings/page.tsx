@@ -4,6 +4,7 @@ import type { ListingStatus } from "@/types/database.types";
 
 import { createClient } from "@/lib/supabase/server";
 
+import { BackfillSectionsButton } from "@/features/trust-safety/components/BackfillSectionsButton";
 import {
   ListingModerationRow,
   type ModerationListing
@@ -57,7 +58,7 @@ export default async function AdminListingsPage({ searchParams }: AdminListingsP
 
   return (
     <div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {STATUS_TABS.map((tab) => (
           <Link
             key={tab.value}
@@ -71,6 +72,11 @@ export default async function AdminListingsPage({ searchParams }: AdminListingsP
             {tab.label}
           </Link>
         ))}
+        {status === "approved" ? (
+          <div className="ml-auto">
+            <BackfillSectionsButton />
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-6 grid gap-3">

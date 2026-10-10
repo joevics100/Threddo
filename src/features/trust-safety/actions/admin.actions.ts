@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 
+import { generateAndSaveListingSections } from "@/features/listings/lib/save-listing-sections";
+
 export interface AdminActionResult {
   error?: string;
 }
@@ -41,6 +43,10 @@ export async function approveListingAction(listingId: string): Promise<AdminActi
     .eq("id", listingId);
 
   if (error) return { error: "Couldn't approve this listing." };
+
+  // Edited listings come back through approval, so regenerate the buyer-guide
+  // sections from the latest details. Failure is silent — approval still stands.
+  await generateAndSaveListingSections(supabase, listingId, { force: true });
 
   revalidatePath("/admin/listings");
   revalidatePath(`/listings/${listingId}`);
@@ -145,4 +151,56 @@ export async function setUserBannedAction(
 
   revalidatePath("/admin/users");
   return {};
+}
+
+export interface BackfillSectionsResult {
+  error?: string;
+  processed?: number;
+  remaining?: number;
+}
+
+/**
+ * Generates buyer-guide sections for approved listings that don't have any
+ * yet, a few at a time (each needs an AI call, so one request can't do them
+ * all). The admin button calls this repeatedly until `remaining` hits 0.
+ */
+export async function backfillListingSectionsAction(): Promise<BackfillSectionsResult> {
+  const { supabase, error: authError } = await requireAdmin();
+  if (authError) return { error: authError };
+
+  const BATCH = 3;
+
+  const { data: missing } = await supabase
+    .from("listings")
+    .select("id")
+    .eq("status", "approved")
+    .is("detail_sections", null)
+    .order("created_at", { ascending: false })
+    .limit(BATCH);
+
+  let processed = 0;
+  for (const row of missing ?? []) {
+    const ok = await generateAndSaveListingSections(supabase, row.id);
+    if (ok) {
+      processed += 1;
+      revalidatePath(`/listings/${row.id}`);
+    }
+  }
+
+  const { count } = await supabase
+    .from("listings")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "approved")
+    .is("detail_sections", null);
+
+  // If nothing in this batch succeeded the AI is failing — report it instead
+  // of letting the button spin forever on the same listings.
+  if ((missing?.length ?? 0) > 0 && processed === 0) {
+    return {
+      error: "AI couldn't generate sections right now. Check the Gemini keys and retry.",
+      remaining: count ?? 0
+    };
+  }
+
+  return { processed, remaining: count ?? 0 };
 }

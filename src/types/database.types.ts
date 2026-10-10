@@ -5,6 +5,8 @@
  *   supabase gen types typescript --project-id <project-ref> > src/types/database.types.ts
  */
 
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
 export type ListingStatus = "pending" | "approved" | "rejected";
 export type ListingCondition = "new" | "like_new" | "gently_used" | "needs_fixing";
 export type SuitableFor = "unisex" | "male" | "female" | "kids";
@@ -111,6 +113,7 @@ export interface Database {
           images: string[];
           status: ListingStatus;
           is_sold: boolean;
+          detail_sections: Json | null;
           rejection_reason: string | null;
           allow_calls: boolean;
           whatsapp_number: string | null;
@@ -142,6 +145,7 @@ export interface Database {
           images?: string[];
           status?: ListingStatus;
           is_sold?: boolean;
+          detail_sections?: Json | null;
           rejection_reason?: string | null;
           allow_calls?: boolean;
           whatsapp_number?: string | null;
@@ -173,6 +177,7 @@ export interface Database {
           images?: string[];
           status?: ListingStatus;
           is_sold?: boolean;
+          detail_sections?: Json | null;
           rejection_reason?: string | null;
           allow_calls?: boolean;
           whatsapp_number?: string | null;
