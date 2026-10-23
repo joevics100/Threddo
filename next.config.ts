@@ -26,7 +26,17 @@ const nextConfig: NextConfig = {
             }
           ]
         : [])
-    ]
+    ],
+    // Every listing and blog-cover photo is already compressed client-side
+    // before upload (down to ~180KB, max 1600px — see
+    // features/listings/lib/compress-image.ts), and every static asset in
+    // /public is already a reasonable web size. Vercel's on-demand image
+    // optimization was re-resizing/re-encoding images that didn't need it
+    // and running the project over its Image Optimization quota. Turning it
+    // off here means <Image> serves the original file directly — no
+    // further transformation, no quota usage — relying entirely on the
+    // client-side compression that already does this job.
+    unoptimized: true
   },
   turbopack: {
     rules: {
