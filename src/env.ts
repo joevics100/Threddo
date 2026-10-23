@@ -23,7 +23,12 @@ export const env = createEnv({
     // let a request rotate to the next one if one hits a rate limit.
     GEMINI_API_KEY_1: z.string().min(1).optional(),
     GEMINI_API_KEY_2: z.string().min(1).optional(),
-    GEMINI_API_KEY_3: z.string().min(1).optional()
+    GEMINI_API_KEY_3: z.string().min(1).optional(),
+    // Shared secret the cron job (cron-job.org) must pass to hit
+    // /api/cron/publish-drafts — without it, anyone who finds the URL could
+    // trigger a publish. Optional only so local dev/builds without it set
+    // don't fail; the route itself refuses to run without it configured.
+    CRON_SECRET: z.string().min(1).optional()
   },
   runtimeEnv: {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
@@ -38,6 +43,7 @@ export const env = createEnv({
     R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
     GEMINI_API_KEY_1: process.env.GEMINI_API_KEY_1,
     GEMINI_API_KEY_2: process.env.GEMINI_API_KEY_2,
-    GEMINI_API_KEY_3: process.env.GEMINI_API_KEY_3
+    GEMINI_API_KEY_3: process.env.GEMINI_API_KEY_3,
+    CRON_SECRET: process.env.CRON_SECRET
   }
 });
