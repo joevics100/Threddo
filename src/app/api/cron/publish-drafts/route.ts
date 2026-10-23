@@ -27,26 +27,43 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  const supabase = createAdminClient();
+  // Everything below can throw for reasons that have nothing to do with the
+  // blog_posts update itself (most likely: SUPABASE_SERVICE_ROLE_KEY isn't
+  // actually set in this environment, even though CRON_SECRET is) — without
+  // this try/catch that surfaces as Next's generic, bodyless 500 page,
+  // which gives whoever's debugging the cron run nothing to go on.
+  try {
+    const supabase = createAdminClient();
 
-  const { data: published, error } = await supabase
-    .from("blog_posts")
-    .update({ status: "published", published_at: new Date().toISOString() })
-    .eq("status", "draft")
-    .select("id, slug, title");
+    const { data: published, error } = await supabase
+      .from("blog_posts")
+      .update({ status: "published", published_at: new Date().toISOString() })
+      .eq("status", "draft")
+      .select("id, slug, title");
 
-  if (error) {
-    return NextResponse.json({ error: "Couldn't publish drafts." }, { status: 500 });
+    if (error) {
+      return NextResponse.json(
+        { error: `Couldn't publish drafts: ${error.message}` },
+        {
+          status: 500
+        }
+      );
+    }
+
+    if (published.length > 0) {
+      revalidatePath("/blog");
+      revalidatePath("/admin/blog");
+      published.forEach((p) => revalidatePath(`/blog/${p.slug}`));
+    }
+
+    return NextResponse.json({
+      publishedCount: published.length,
+      published: published.map((p) => ({ slug: p.slug, title: p.title }))
+    });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Unknown server error." },
+      { status: 500 }
+    );
   }
-
-  if (published.length > 0) {
-    revalidatePath("/blog");
-    revalidatePath("/admin/blog");
-    published.forEach((p) => revalidatePath(`/blog/${p.slug}`));
-  }
-
-  return NextResponse.json({
-    publishedCount: published.length,
-    published: published.map((p) => ({ slug: p.slug, title: p.title }))
-  });
 }
