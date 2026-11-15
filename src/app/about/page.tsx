@@ -1,70 +1,64 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { marketplaceHref } from "@/lib/marketplace";
+
 export const metadata: Metadata = {
   title: "About Threddo",
   description:
-    "Threddo is a secondhand fashion marketplace for Nigeria — buy, sell, or give away clothes, shoes, bags, and more, with no fees and no in-app payments.",
+    "Threddo is a Nigerian blog about thrift fashion, saving money, and getting more from what you own — plus a free marketplace to buy, sell, or give away secondhand clothes.",
   alternates: { canonical: "/about" }
 };
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12 pb-24 sm:pb-12">
+    <main className="mx-auto max-w-3xl px-6 py-12">
       <h1 className="text-3xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
         About Threddo
       </h1>
 
       <div className="mt-6 space-y-6 text-black/70">
         <p>
-          Threddo is a marketplace built for Nigeria, where anyone can give away or sell secondhand
-          clothes, shoes, bags, accessories, and hair — directly to buyers nearby, with no fees and
-          no in-app payments getting in the way.
+          Threddo is a Nigerian blog about thrift fashion, spending smarter, and getting more out of
+          what you already own. We write practical, plainly worded guides — how to shop okrika
+          markets with confidence, how to price and sell things you no longer use, how to stretch a
+          budget, and how to turn a small idea into a little extra income.
         </p>
+
+        <div>
+          <h2 className="text-lg font-semibold text-[#1B1F3B]">What you&apos;ll find here</h2>
+          <ul className="mt-3 grid list-disc gap-2 pl-5">
+            <li>Thrift and okrika buying guides, price checks, and market tips.</li>
+            <li>Advice for selling, decluttering, and making money from items you own.</li>
+            <li>Everyday money-saving ideas written for Nigerian realities.</li>
+          </ul>
+        </div>
 
         <p>
-          A lot of good, wearable clothing sits unused in wardrobes across the country while other
-          people are actively looking for exactly that item at a fair price — or for free. Threddo
-          exists to close that gap: a simple, WhatsApp-first way to connect sellers with buyers,
-          without the friction of shipping or platform cuts.
+          Articles are written and edited by the Threddo team. We aim to keep them accurate and
+          useful, and we update them when prices, markets, or rules change. If you spot a mistake or
+          something out of date, please{" "}
+          <Link href="/contact" className="font-medium text-[#1B1F3B] underline">
+            tell us
+          </Link>{" "}
+          and we&apos;ll look into it.
         </p>
 
         <div>
-          <h2 className="text-lg font-semibold text-[#1B1F3B]">How it works</h2>
-          <ol className="mt-3 grid list-decimal gap-2 pl-5">
-            <li>Post a listing with photos, a price (or mark it free), and your location.</li>
-            <li>Interested buyers reach you directly on WhatsApp — no in-app chat required.</li>
-            <li>You arrange the details and complete payment or handover directly, in person.</li>
-          </ol>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-semibold text-[#1B1F3B]">What Threddo is not</h2>
-          <p className="mt-2">
-            Threddo doesn&apos;t ship your items or take a cut of any sale — deals are made directly
-            between buyer and seller. For extra peace of mind on higher-value items, Threddo Escrow
-            is available on request: admin holds the buyer&apos;s payment until they&apos;ve
-            confirmed the item arrived as described. See our{" "}
-            <Link href="/safety" className="font-semibold text-[#E8543D] hover:underline">
-              Safety Guide
-            </Link>{" "}
-            for tips on trading safely, and our{" "}
-            <Link href="/terms" className="font-semibold text-[#E8543D] hover:underline">
-              Terms of Service
-            </Link>{" "}
-            for the full picture.
+          <h2 className="text-lg font-semibold text-[#1B1F3B]">The Threddo marketplace</h2>
+          <p className="mt-3">
+            Alongside the blog, Threddo runs a free marketplace where people across Nigeria give
+            away or sell secondhand clothes, shoes, bags, accessories, and hair — directly to
+            buyers, with no fees and no in-app payments. It lives on its own site:{" "}
+            <a
+              href={marketplaceHref("/")}
+              className="font-medium text-[#E8543D] underline hover:no-underline"
+            >
+              browse the Threddo marketplace
+            </a>
+            .
           </p>
         </div>
-      </div>
-
-      <div className="mt-10 rounded-2xl bg-[#1B1F3B] p-6 text-center text-white">
-        <p className="font-medium">Have something to give away or sell?</p>
-        <p className="mt-1 text-sm text-white/70">
-          <Link href="/post" className="font-semibold text-[#E8A33D] hover:underline">
-            Post your first listing
-          </Link>{" "}
-          — it only takes a couple of minutes.
-        </p>
       </div>
     </main>
   );

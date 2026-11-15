@@ -8,8 +8,9 @@ import { ChevronLeft, ChevronRight, Gift, MapPin, Tag } from "lucide-react";
 
 import type { ListingCondition } from "@/types/database.types";
 
-import { SaveButton } from "@/features/listings/components/SaveButton";
-import { formatNaira, getConditionLabel } from "@/features/listings/lib/format";
+import { marketplaceHref } from "@/lib/marketplace";
+
+import { formatNaira, getConditionLabel } from "@/features/home/lib/format";
 
 const CONDITION_STYLES: Record<ListingCondition, string> = {
   new: "bg-[#E8A33D]/15 text-[#B9791F]",
@@ -28,8 +29,6 @@ export interface ListingCardProps {
   lga: string | null;
   /** All photos for this listing — the card lets the viewer swipe through them. */
   images?: string[];
-  /** Only pass this when the viewer is logged in — omit to hide the save button entirely. */
-  isSaved?: boolean;
   isSold?: boolean;
   /**
    * Marks this card's first photo as the LCP candidate — pass true only for
@@ -49,7 +48,6 @@ export function ListingCard({
   state,
   lga,
   images = [],
-  isSaved,
   isSold,
   priority = false
 }: ListingCardProps) {
@@ -94,7 +92,7 @@ export function ListingCard({
               {images.map((url, index) => (
                 <Link
                   key={url}
-                  href={`/listings/${id}`}
+                  href={marketplaceHref(`/listings/${id}`)}
                   className="relative h-full w-full shrink-0 snap-center"
                 >
                   {loadedIndices.has(index) ? (
@@ -155,7 +153,7 @@ export function ListingCard({
           </>
         ) : (
           <Link
-            href={`/listings/${id}`}
+            href={marketplaceHref(`/listings/${id}`)}
             className="flex h-full items-center justify-center text-xs text-[#1B1F3B]/40"
           >
             No photo
@@ -171,12 +169,6 @@ export function ListingCard({
           {isFree ? "Donation" : "For sale"}
         </span>
 
-        {isSaved !== undefined ? (
-          <div className="absolute top-2 right-2">
-            <SaveButton listingId={id} initialSaved={isSaved} />
-          </div>
-        ) : null}
-
         {isSold ? (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
             <span className="-rotate-6 rounded-md border-2 border-white bg-destructive px-3 py-1 text-sm font-bold tracking-widest text-white uppercase shadow-lg">
@@ -186,7 +178,7 @@ export function ListingCard({
         ) : null}
       </div>
 
-      <Link href={`/listings/${id}`} className="block p-4">
+      <Link href={marketplaceHref(`/listings/${id}`)} className="block p-4">
         <h3 className="truncate text-sm font-semibold text-[#1B1F3B]">{title}</h3>
         <p className={`mt-1 text-base font-bold ${isFree ? "text-emerald-600" : "text-[#C4791F]"}`}>
           {isFree ? "Free" : formatNaira(price)}

@@ -10,7 +10,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?next=/admin/listings");
+    redirect("/login?next=/admin/blog");
   }
 
   const { data: profile } = await supabase
@@ -28,23 +28,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <h1 className="text-3xl font-[var(--font-display)] font-bold text-[#1B1F3B]">Admin</h1>
 
       <nav className="mt-4 flex gap-4 border-b border-black/10 pb-3">
-        <Link href="/admin/listings" className="text-sm font-medium text-[#1B1F3B] hover:underline">
-          Approval queue
-        </Link>
-        <Link href="/admin/reports" className="text-sm font-medium text-[#1B1F3B] hover:underline">
-          Reports
-        </Link>
-        <Link href="/admin/users" className="text-sm font-medium text-[#1B1F3B] hover:underline">
-          Users
-        </Link>
         <Link href="/admin/blog" className="text-sm font-medium text-[#1B1F3B] hover:underline">
-          Blog
+          Blog posts
         </Link>
-        <Link
-          href="/admin/listings/new"
-          className="text-sm font-medium text-[#1B1F3B] hover:underline"
-        >
-          Create for user
+        <Link href="/admin/blog/new" className="text-sm font-medium text-[#1B1F3B] hover:underline">
+          New post
         </Link>
       </nav>
 

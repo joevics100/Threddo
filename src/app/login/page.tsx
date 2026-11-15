@@ -1,63 +1,45 @@
 import type { Metadata } from "next";
 
-import { siteConfig } from "@/config/site.config";
+import { marketplaceHref } from "@/lib/marketplace";
 
-import { Separator } from "@/ui";
-import { AuthTabs, GoogleSignInButton, LoginForm } from "@/features/auth";
+import { LoginForm } from "@/features/auth";
 
 export const metadata: Metadata = {
-  title: "Log in",
-  robots: { index: false, follow: true }
+  title: "Admin login",
+  robots: { index: false, follow: false }
 };
 
 export default async function LoginPage({
   searchParams
 }: {
-  searchParams: Promise<{ next?: string; error?: string; banned?: string }>;
+  searchParams: Promise<{ next?: string; banned?: string }>;
 }) {
-  const { next, error, banned } = await searchParams;
+  const { next, banned } = await searchParams;
 
   return (
     <main className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-[#FBF8F3] px-6 py-16">
       <div className="w-full max-w-sm rounded-2xl border border-black/5 bg-white p-8 shadow-sm">
-        <AuthTabs active="login" next={next} />
-
         <h1 className="text-2xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
-          Welcome back
+          Admin login
         </h1>
-        <p className="mt-1 text-sm text-black/60">Log in to post and manage your listings.</p>
-
-        {error === "oauth" ? (
-          <p className="mt-4 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            Something went wrong signing in with Google. Please try again.
-          </p>
-        ) : null}
+        <p className="mt-1 text-sm text-black/60">For the Threddo team to manage the blog.</p>
 
         {banned === "1" ? (
           <p className="mt-4 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            This account has been suspended. Contact support if you think this is a mistake.
+            This account has been suspended.
           </p>
         ) : null}
 
-        {siteConfig.googleSignInEnabled ? (
-          <>
-            <div className="mt-6">
-              <GoogleSignInButton redirectTo={next} />
-            </div>
+        <div className="mt-6">
+          <LoginForm redirectTo={next} />
+        </div>
 
-            <div className="my-6 flex items-center gap-3">
-              <Separator className="flex-1" />
-              <span className="text-xs text-black/40 uppercase">or</span>
-              <Separator className="flex-1" />
-            </div>
-
-            <LoginForm redirectTo={next} />
-          </>
-        ) : (
-          <div className="mt-6">
-            <LoginForm redirectTo={next} />
-          </div>
-        )}
+        <p className="mt-6 text-center text-sm text-black/60">
+          Looking to buy or sell?{" "}
+          <a href={marketplaceHref("/login")} className="font-medium text-[#1B1F3B] underline">
+            Log in to the marketplace
+          </a>
+        </p>
       </div>
     </main>
   );

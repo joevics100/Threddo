@@ -16,32 +16,14 @@ import { ArrowLeft } from "lucide-react";
  * Ordered most-specific first; the first match wins.
  */
 const ROUTE_PARENTS: { test: RegExp; parent: (path: string) => string }[] = [
-  { test: /^\/listings\/[^/]+\/edit$/, parent: (p) => p.replace(/\/edit$/, "") },
-  { test: /^\/listings\/filters$/, parent: () => "/listings" },
-  { test: /^\/listings\/[^/]+$/, parent: () => "/listings" },
-  { test: /^\/listings$/, parent: () => "/" },
-  { test: /^\/dashboard\/listings$/, parent: () => "/dashboard" },
-  { test: /^\/dashboard$/, parent: () => "/" },
   { test: /^\/admin\/blog\/[^/]+\/edit$/, parent: () => "/admin/blog" },
   { test: /^\/admin\/blog\/new$/, parent: () => "/admin/blog" },
-  { test: /^\/admin\/blog$/, parent: () => "/admin" },
-  { test: /^\/admin\/listings\/new$/, parent: () => "/admin" },
-  { test: /^\/admin\/listings$/, parent: () => "/admin" },
-  { test: /^\/admin\/reports$/, parent: () => "/admin" },
+  { test: /^\/admin\/blog$/, parent: () => "/" },
   { test: /^\/admin$/, parent: () => "/" },
   { test: /^\/blog\/[^/]+$/, parent: () => "/blog" },
   { test: /^\/blog$/, parent: () => "/" },
-  { test: /^\/signup\/check-email$/, parent: () => "/signup" },
-  { test: /^\/signup$/, parent: () => "/" },
-  { test: /^\/onboarding\/phone$/, parent: () => "/signup" },
-  { test: /^\/post\/bulk$/, parent: () => "/post" },
-  { test: /^\/post\/success$/, parent: () => "/" },
-  { test: /^\/post$/, parent: () => "/" },
-  { test: /^\/settings$/, parent: () => "/dashboard" },
-  { test: /^\/sellers\/[^/]+$/, parent: () => "/" },
-  { test: /^\/saved$/, parent: () => "/" },
-  { test: /^\/login$/, parent: () => "/" },
-  { test: /^\/(about|privacy|safety|terms)$/, parent: () => "/" }
+  { test: /^\/(login|forgot-password|reset-password)$/, parent: () => "/" },
+  { test: /^\/(about|contact|privacy|terms)$/, parent: () => "/" }
 ];
 
 function getParentPath(pathname: string): string | null {

@@ -4,31 +4,33 @@ import Link from "next/link";
 
 import { siteConfig } from "@/config/site.config";
 
+import { marketplaceHref } from "@/lib/marketplace";
 import { JsonLd } from "@/lib/seo";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 
 import { CategoryCard } from "@/components/shared/CategoryCard";
 import { ListingCard } from "@/components/shared/ListingCard";
-import { HomeSearchBar } from "@/features/listings/components/HomeSearchBar";
-import { sortCategoriesForHomepageGrid } from "@/features/listings/lib/sort-categories";
+import { HomeSearchBar } from "@/features/home/components/HomeSearchBar";
+import { sortCategoriesForHomepageGrid } from "@/features/home/lib/sort-categories";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" }
 };
 
+// Everything on this page is public data, so it is cached and refreshed every
+// few minutes instead of being rendered fresh for each visitor.
+export const revalidate = 300;
+
 const QUICK_FILTERS = [
-  { label: "Female", href: "/listings?suitableFor=female" },
-  { label: "Male", href: "/listings?suitableFor=male" },
-  { label: "Kids", href: "/listings?suitableFor=kids" },
-  { label: "Unisex", href: "/listings?suitableFor=unisex" },
-  { label: "Donations", href: "/listings?freeOnly=1" }
+  { label: "Female", href: marketplaceHref("/listings?suitableFor=female") },
+  { label: "Male", href: marketplaceHref("/listings?suitableFor=male") },
+  { label: "Kids", href: marketplaceHref("/listings?suitableFor=kids") },
+  { label: "Unisex", href: marketplaceHref("/listings?suitableFor=unisex") },
+  { label: "Donations", href: marketplaceHref("/listings?freeOnly=1") }
 ];
 
 export default async function HomePage() {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const supabase = createPublicClient();
 
   const [{ data: categories }, { data: listings }] = await Promise.all([
     supabase.from("categories").select("id, name, slug, parent_id").order("name"),
@@ -39,15 +41,6 @@ export default async function HomePage() {
       .order("created_at", { ascending: false })
       .limit(8)
   ]);
-
-  let savedIds = new Set<string>();
-  if (user) {
-    const { data: saved } = await supabase
-      .from("saved_listings")
-      .select("listing_id")
-      .eq("user_id", user.id);
-    savedIds = new Set((saved ?? []).map((s) => s.listing_id));
-  }
 
   const topLevelCategories = sortCategoriesForHomepageGrid(
     (categories ?? []).filter((c) => !c.parent_id)
@@ -78,7 +71,7 @@ export default async function HomePage() {
           url: siteConfig.url,
           potentialAction: {
             "@type": "SearchAction",
-            target: `${siteConfig.url}/listings?q={search_term_string}`,
+            target: `${marketplaceHref("/listings")}?q={search_term_string}`,
             "query-input": "required name=search_term_string"
           }
         }}
@@ -148,7 +141,10 @@ export default async function HomePage() {
             <h2 className="text-2xl font-[var(--font-display)] font-bold text-[#1B1F3B]">
               Fresh on Threddo
             </h2>
-            <Link href="/listings" className="text-sm font-semibold text-[#E8543D] hover:underline">
+            <Link
+              href={marketplaceHref("/listings")}
+              className="text-sm font-semibold text-[#E8543D] hover:underline"
+            >
               See all →
             </Link>
           </div>
@@ -167,7 +163,6 @@ export default async function HomePage() {
                     state={listing.state}
                     lga={listing.lga}
                     images={listing.images ?? []}
-                    isSaved={user ? savedIds.has(listing.id) : undefined}
                     isSold={listing.is_sold}
                     priority={index === 0}
                   />
@@ -176,7 +171,7 @@ export default async function HomePage() {
 
               <div className="mt-8 flex justify-center">
                 <Link
-                  href="/listings"
+                  href={marketplaceHref("/listings")}
                   className="rounded-lg border border-[#1B1F3B]/20 px-6 py-3 font-semibold text-[#1B1F3B] transition hover:bg-[#1B1F3B]/5"
                 >
                   See more listings
@@ -186,7 +181,10 @@ export default async function HomePage() {
           ) : (
             <p className="mt-8 text-[#1B1F3B]/60">
               No listings yet — be the first to{" "}
-              <Link href="/post" className="font-semibold text-[#E8543D] hover:underline">
+              <Link
+                href={marketplaceHref("/post")}
+                className="font-semibold text-[#E8543D] hover:underline"
+              >
                 post an item
               </Link>
               .
@@ -261,7 +259,7 @@ export default async function HomePage() {
             to a stranger. If a deal feels off, trust that feeling.
           </p>
           <Link
-            href="/safety"
+            href={marketplaceHref("/safety")}
             className="mt-5 inline-block text-sm font-semibold text-[#E8A33D] hover:underline"
           >
             Read our full safety guide →

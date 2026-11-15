@@ -7,6 +7,25 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true"
 });
 
+// The marketplace moved to its own subdomain. Anything that used to live at
+// these paths (old links, bookmarks, Google's index) is sent there with a
+// permanent redirect, so existing listing URLs keep working and keep their
+// search standing instead of turning into 404s on this site.
+const MARKETPLACE_URL = (
+  process.env.NEXT_PUBLIC_MARKETPLACE_URL ?? "https://shop.threddo.com.ng"
+).replace(/\/$/, "");
+const MARKETPLACE_PATHS = [
+  "listings",
+  "post",
+  "sellers",
+  "saved",
+  "dashboard",
+  "settings",
+  "signup",
+  "onboarding",
+  "safety"
+];
+
 const nextConfig: NextConfig = {
   reactCompiler: true,
   htmlLimitedBots: /.*/,
@@ -37,6 +56,13 @@ const nextConfig: NextConfig = {
     // further transformation, no quota usage — relying entirely on the
     // client-side compression that already does this job.
     unoptimized: true
+  },
+  async redirects() {
+    return MARKETPLACE_PATHS.map((path) => ({
+      source: `/${path}/:rest*`,
+      destination: `${MARKETPLACE_URL}/${path}/:rest*`,
+      permanent: true
+    }));
   },
   turbopack: {
     rules: {

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { siteConfig } from "@/config/site.config";
 
+import { marketplaceHref } from "@/lib/marketplace";
 import { absoluteUrl, JsonLd } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 
@@ -196,13 +197,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <div className="mt-12 rounded-2xl bg-[#1B1F3B] p-6 text-center text-white">
         <p className="font-medium">Have something to give away or sell?</p>
         <p className="mt-1 text-sm text-white/70">
-          <Link href="/post" className="font-semibold text-[#E8A33D] hover:underline">
+          <a
+            href={marketplaceHref("/post")}
+            className="font-semibold text-[#E8A33D] hover:underline"
+          >
             Post your first listing
-          </Link>{" "}
+          </a>{" "}
           — it only takes a couple of minutes. Or{" "}
-          <Link href="/listings" className="font-semibold text-[#E8A33D] hover:underline">
+          <a
+            href={marketplaceHref("/listings")}
+            className="font-semibold text-[#E8A33D] hover:underline"
+          >
             browse listings near you
-          </Link>
+          </a>
           .
         </p>
       </div>

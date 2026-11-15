@@ -1,6 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { marketplaceHref } from "@/lib/marketplace";
+
+const LINK_CLASS = "text-white/70 hover:text-white hover:underline";
+
 export function Footer() {
   return (
     <footer className="bg-[#1B1F3B] py-10">
@@ -8,24 +12,24 @@ export function Footer() {
         <Image src="/logo-light.png" alt="Threddo" width={35} height={40} />
         <p>© {new Date().getFullYear()} Threddo. All rights reserved.</p>
         <div className="flex flex-wrap justify-center gap-4">
-          <Link href="/about" className="text-white/70 hover:text-white hover:underline">
+          <Link href="/about" className={LINK_CLASS}>
             About
           </Link>
-          <Link href="/blog" className="text-white/70 hover:text-white hover:underline">
+          <Link href="/blog" className={LINK_CLASS}>
             Blog
           </Link>
-          <Link href="/contact" className="text-white/70 hover:text-white hover:underline">
+          <Link href="/contact" className={LINK_CLASS}>
             Contact
           </Link>
-          <Link href="/safety" className="text-white/70 hover:text-white hover:underline">
-            Safety
-          </Link>
-          <Link href="/privacy" className="text-white/70 hover:text-white hover:underline">
+          <Link href="/privacy" className={LINK_CLASS}>
             Privacy
           </Link>
-          <Link href="/terms" className="text-white/70 hover:text-white hover:underline">
+          <Link href="/terms" className={LINK_CLASS}>
             Terms
           </Link>
+          <a href={marketplaceHref("/")} className={LINK_CLASS}>
+            Threddo Marketplace
+          </a>
         </div>
       </div>
     </footer>

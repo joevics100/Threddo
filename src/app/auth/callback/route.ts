@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   // Only ever redirect to a same-site path — never follow an absolute/external URL from a query param.
   const next = searchParams.get("next");
-  const safeNext = next?.startsWith("/") ? next : "/dashboard";
+  const safeNext = next?.startsWith("/") ? next : "/admin/blog";
 
   if (code) {
     const supabase = await createClient();
@@ -17,21 +17,6 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && session) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("phone")
-        .eq("id", session.user.id)
-        .single();
-
-      // Every Threddo account needs a phone number (it's the default
-      // listing contact) — Google never provides one, so first-time Google
-      // sign-ins get routed through a one-field step before continuing on.
-      if (!profile?.phone) {
-        return NextResponse.redirect(
-          `${origin}/onboarding/phone?next=${encodeURIComponent(safeNext)}`
-        );
-      }
-
       return NextResponse.redirect(`${origin}${safeNext}`);
     }
   }

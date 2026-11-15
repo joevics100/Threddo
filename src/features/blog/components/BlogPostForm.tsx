@@ -6,6 +6,8 @@ import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
+import { compressListingImage, HeicConversionError } from "@/lib/compress-image";
+
 import {
   Button,
   Form,
@@ -20,7 +22,6 @@ import {
 import { getBlogCoverUploadUrl } from "@/features/blog/actions/blog-upload.actions";
 import { extractBlogPostContentAction } from "@/features/blog/actions/blog.actions";
 import { blogPostSchema, slugify, type BlogPostInput } from "@/features/blog/schemas/blog.schemas";
-import { compressListingImage, HeicConversionError } from "@/features/listings/lib/compress-image";
 
 interface BlogPostFormProps {
   mode: "create" | "edit";

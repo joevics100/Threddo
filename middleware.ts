@@ -7,14 +7,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - image files
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"
-  ]
+  // Public blog and homepage requests never need a session, so they skip the
+  // Supabase round trip entirely (faster, cheaper, and cacheable). Only the
+  // admin area and the auth pages — which do use sessions — go through it.
+  matcher: ["/admin/:path*", "/login", "/forgot-password", "/reset-password", "/auth/:path*"]
 };

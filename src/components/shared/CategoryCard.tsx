@@ -11,6 +11,8 @@ import {
   type LucideIcon
 } from "lucide-react";
 
+import { marketplaceHref } from "@/lib/marketplace";
+
 interface CategoryCardProps {
   name: string;
   slug: string;
@@ -31,7 +33,7 @@ export function CategoryCard({ name, slug, count }: CategoryCardProps) {
 
   return (
     <Link
-      href={`/listings?category=${slug}`}
+      href={marketplaceHref(`/listings?category=${slug}`)}
       className="group flex flex-col justify-between rounded-xl border border-[#1B1F3B]/10 bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#E8A33D] hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B1F3B]"
     >
       <Icon className="size-6 text-[#E8A33D]" strokeWidth={1.75} />

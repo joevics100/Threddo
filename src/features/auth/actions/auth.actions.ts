@@ -10,45 +10,13 @@ import {
   forgotPasswordSchema,
   loginSchema,
   resetPasswordSchema,
-  signupSchema,
   type ForgotPasswordInput,
   type LoginInput,
-  type ResetPasswordInput,
-  type SignupInput
+  type ResetPasswordInput
 } from "@/features/auth/schemas/auth.schemas";
 
 export interface AuthActionResult {
   error?: string;
-}
-
-export async function signUpAction(values: SignupInput): Promise<AuthActionResult> {
-  const parsed = signupSchema.safeParse(values);
-
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Please check your details and try again." };
-  }
-
-  const supabase = await createClient();
-
-  const { data, error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    options: {
-      data: { full_name: parsed.data.fullName, phone: parsed.data.phone }
-    }
-  });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  // If email confirmation is enabled in Supabase, there's no session yet —
-  // send the user to a "check your inbox" screen instead of the dashboard.
-  if (!data.session) {
-    redirect("/signup/check-email");
-  }
-
-  redirect("/dashboard");
 }
 
 export async function signInAction(
@@ -74,7 +42,7 @@ export async function signInAction(
 
   // Only ever redirect to a same-site path — never follow an absolute/external
   // URL from a query param.
-  const safeRedirect = redirectTo?.startsWith("/") ? redirectTo : "/dashboard";
+  const safeRedirect = redirectTo?.startsWith("/") ? redirectTo : "/admin/blog";
   redirect(safeRedirect);
 }
 
@@ -142,5 +110,5 @@ export async function resetPasswordAction(
     return { error: "Couldn't update your password. Please try again." };
   }
 
-  redirect("/dashboard");
+  redirect("/admin/blog");
 }

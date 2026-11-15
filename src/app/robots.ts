@@ -13,7 +13,7 @@ export default function robots(): MetadataRoute.Robots {
         // are handled with a per-page `noindex` instead of blocking the crawl,
         // so Google can see the tag and fully drop them rather than leaving a
         // "blocked by robots.txt" ghost entry in search results.
-        disallow: ["/admin", "/dashboard"]
+        disallow: ["/admin"]
       }
     ],
     sitemap: `${siteConfig.url}/sitemap.xml`

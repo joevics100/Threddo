@@ -6,7 +6,11 @@ export const env = createEnv({
     NEXT_PUBLIC_SITE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
-    NEXT_PUBLIC_GA_ID: z.string().optional()
+    NEXT_PUBLIC_GA_ID: z.string().optional(),
+    // Where the marketplace (listings, accounts, posting) lives now that it is
+    // a separate site, e.g. https://shop.threddo.com.ng. Every link from this
+    // site into the marketplace is built from this one value.
+    NEXT_PUBLIC_MARKETPLACE_URL: z.string().url().optional()
   },
   // Server-only secrets. Never import from client components.
   server: {
@@ -35,6 +39,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
+    NEXT_PUBLIC_MARKETPLACE_URL: process.env.NEXT_PUBLIC_MARKETPLACE_URL,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
     R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
